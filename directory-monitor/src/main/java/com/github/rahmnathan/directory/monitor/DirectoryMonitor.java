@@ -31,6 +31,7 @@ public class DirectoryMonitor {
     public DirectoryMonitor(List<DirectoryMonitorObserver> observerList) {
         this.observerList = observerList;
         this.executor = Executors.newSingleThreadExecutor();
+        startRecursiveWatcher();
     }
 
     private void notifyObservers(WatchEvent event, Path absolutePath) {
@@ -41,12 +42,6 @@ public class DirectoryMonitor {
         register.accept(Paths.get(pathToMonitor));
     }
 
-    @PreDestroy
-    public void cleanup() {
-        executor.shutdown();
-    }
-
-    @PostConstruct
     private void startRecursiveWatcher() {
         logger.info("Starting Recursive Watcher");
 
