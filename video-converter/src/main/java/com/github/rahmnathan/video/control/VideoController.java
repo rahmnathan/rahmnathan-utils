@@ -13,7 +13,7 @@ public class VideoController implements Runnable {
     private final VideoConverter videoConverter = new VideoConverter();
     private final Logger logger = Logger.getLogger(VideoController.class.getName());
 
-    VideoController(SimpleConversionJob simpleConversionJob) {
+    public VideoController(SimpleConversionJob simpleConversionJob) {
         this.simpleConversionJob = simpleConversionJob;
     }
 
