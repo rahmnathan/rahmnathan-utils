@@ -29,10 +29,10 @@ public class HttpClient {
 
     public static byte[] getResponseAsBytes(String urlString){
         HttpURLConnection connection = getUrlConnection(urlString);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         if(connection != null) {
             try (InputStream inputStream = connection.getInputStream()) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 byte[] buffer = new byte[1024];
                 int i;
 
@@ -43,6 +43,8 @@ public class HttpClient {
                 return baos.toByteArray();
             } catch (Exception e) {
                 logger.severe(e.toString());
+            } finally {
+                connection.disconnect();
             }
         }
 
