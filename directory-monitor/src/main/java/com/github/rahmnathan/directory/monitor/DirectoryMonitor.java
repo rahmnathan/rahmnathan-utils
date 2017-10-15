@@ -5,8 +5,8 @@ import com.sun.nio.file.SensitivityWatchEventModifier;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,19 +20,19 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 public class DirectoryMonitor {
     private static final Logger logger = Logger.getLogger(DirectoryMonitor.class.getName());
     private final ExecutorService executor;
-    private final List<DirectoryMonitorObserver> observerList;
+    private final Collection<DirectoryMonitorObserver> observers;
     private final Map<WatchKey, Path> keys = new HashMap<>();
     private WatchService watchService;
     private Consumer<Path> register;
 
-    public DirectoryMonitor(List<DirectoryMonitorObserver> observerList) {
-        this.observerList = observerList;
-        this.executor = Executors.newSingleThreadExecutor();
+    public DirectoryMonitor(Collection<DirectoryMonitorObserver> observers) {
+        this.observers = observers;
+        this.executor = Executors.newFixedThreadPool(3);
         startRecursiveWatcher();
     }
 
     private void notifyObservers(WatchEvent event, Path absolutePath) {
-        observerList.forEach(observer -> observer.directoryModified(event, absolutePath));
+        observers.forEach(observer -> executor.execute(() -> observer.directoryModified(event, absolutePath)));
     }
 
     public void registerDirectory(String pathToMonitor) {
@@ -51,7 +51,7 @@ public class DirectoryMonitor {
 
         register = p -> {
             try {
-                Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(p, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                         logger.info("registering " + dir + " in watcher service");
