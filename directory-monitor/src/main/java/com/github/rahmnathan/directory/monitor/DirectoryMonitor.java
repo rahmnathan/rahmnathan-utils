@@ -8,6 +8,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -27,12 +28,12 @@ public class DirectoryMonitor {
 
     public DirectoryMonitor(Collection<DirectoryMonitorObserver> observers) {
         this.observers = observers;
-        this.executor = Executors.newFixedThreadPool(3);
+        this.executor = Executors.newSingleThreadExecutor();
         startRecursiveWatcher();
     }
 
     private void notifyObservers(WatchEvent event, Path absolutePath) {
-        observers.forEach(observer -> executor.execute(() -> observer.directoryModified(event, absolutePath)));
+        observers.forEach(observer -> CompletableFuture.runAsync(() -> observer.directoryModified(event, absolutePath)));
     }
 
     public void registerDirectory(String pathToMonitor) {
