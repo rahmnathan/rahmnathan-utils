@@ -29,6 +29,7 @@ public class HttpClient {
             }
 
             if(body != null){
+                connection.setDoOutput(true);
                 try(BufferedWriter br = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))){
                     br.write(body);
                 } catch (IOException e){
