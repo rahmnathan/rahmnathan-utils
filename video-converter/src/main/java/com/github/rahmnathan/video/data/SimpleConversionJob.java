@@ -1,4 +1,4 @@
-package com.github.rahmnathan.video.job;
+package com.github.rahmnathan.video.data;
 
 import com.github.rahmnathan.video.codec.AudioCodec;
 import com.github.rahmnathan.video.codec.VideoCodec;

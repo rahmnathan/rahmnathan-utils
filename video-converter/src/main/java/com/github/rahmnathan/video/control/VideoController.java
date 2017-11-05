@@ -1,6 +1,6 @@
 package com.github.rahmnathan.video.control;
 
-import com.github.rahmnathan.video.job.SimpleConversionJob;
+import com.github.rahmnathan.video.data.SimpleConversionJob;
 import com.github.rahmnathan.video.converter.VideoConverter;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
@@ -29,17 +29,12 @@ public class VideoController implements Runnable {
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
         if (simpleConversionJob.getFfprobe() == null) return true;
 
-        boolean correctVideoCodec = false;
-        boolean correctAudioCodec = false;
+        boolean correctVideoCodec = simpleConversionJob.getVideoCodec() == null;
+        boolean correctAudioCodec = simpleConversionJob.getAudioCodec() == null;
 
         try {
             FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
-
-            if (simpleConversionJob.getVideoCodec() == null)
-                correctVideoCodec = true;
-            if (simpleConversionJob.getAudioCodec() == null)
-                correctAudioCodec = true;
 
             for (FFmpegStream stream : probeResult.getStreams()) {
                 String codecName = stream.codec_name;
@@ -49,7 +44,6 @@ public class VideoController implements Runnable {
                 else if (codecName.equalsIgnoreCase(simpleConversionJob.getVideoCodec().name()))
                     correctVideoCodec = true;
             }
-
         } catch (IOException e) {
             logger.severe(e.toString());
         }
