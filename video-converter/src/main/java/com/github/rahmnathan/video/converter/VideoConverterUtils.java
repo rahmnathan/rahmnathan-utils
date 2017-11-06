@@ -36,7 +36,7 @@ class VideoConverterUtils {
         });
     }
 
-    private static FFmpegBuilder createBuilder(SimpleConversionJob conversionJob) {
+    static FFmpegBuilder createBuilder(SimpleConversionJob conversionJob) {
         FFmpegOutputBuilder outputBuilder = new FFmpegBuilder()
                 .setInput(conversionJob.getInputFile().getAbsolutePath())
                 .overrideOutputFiles(true)
