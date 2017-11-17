@@ -9,6 +9,7 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class VideoConverterUtils {
@@ -65,7 +66,7 @@ class VideoConverterUtils {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
-                logger.severe(e.toString());
+                logger.log(Level.SEVERE, "Thread sleep operation interrupted", e);
                 break;
             }
         }

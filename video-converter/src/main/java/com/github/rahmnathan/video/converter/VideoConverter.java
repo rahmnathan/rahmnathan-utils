@@ -4,6 +4,7 @@ import com.github.rahmnathan.video.data.SimpleConversionJob;
 import net.bramp.ffmpeg.job.FFmpegJob;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class VideoConverter {
@@ -27,7 +28,7 @@ public class VideoConverter {
                 conversionJob.getInputFile().delete();
             }
         } catch (IOException e) {
-            logger.severe(e.toString());
+            logger.log(Level.SEVERE, "Failed to convert video", e);
         }
     }
 }

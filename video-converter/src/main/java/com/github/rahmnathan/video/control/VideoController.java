@@ -6,6 +6,7 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class VideoController implements Runnable {
@@ -45,7 +46,7 @@ public class VideoController implements Runnable {
                     correctVideoCodec = true;
             }
         } catch (IOException e) {
-            logger.severe(e.toString());
+            logger.log(Level.SEVERE, "Failed to determine video format", e);
         }
 
         return correctVideoCodec && correctAudioCodec;

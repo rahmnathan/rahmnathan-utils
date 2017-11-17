@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
@@ -46,7 +47,7 @@ public class DirectoryMonitor {
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
         } catch (IOException e) {
-            logger.severe(e.toString());
+            logger.log(Level.SEVERE, "Failed getting watch service", e);
             return;
         }
 
@@ -62,7 +63,7 @@ public class DirectoryMonitor {
                     }
                 });
             } catch (IOException e) {
-                logger.severe(e.toString());
+                logger.log(Level.SEVERE, "Failure registering directory in directory monitor", e);
             }
         };
 
@@ -72,7 +73,7 @@ public class DirectoryMonitor {
                 try {
                     key = watchService.take();
                 } catch (InterruptedException e) {
-                    logger.severe(e.toString());
+                    logger.log(Level.SEVERE, "Error getting watch key from directory monitor", e);
                     continue;
                 }
 
