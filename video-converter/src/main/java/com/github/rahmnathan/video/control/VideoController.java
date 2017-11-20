@@ -6,25 +6,33 @@ import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class VideoController implements Runnable {
     private final SimpleConversionJob simpleConversionJob;
+    private volatile Set<String> activeConversions;
     private final VideoConverter videoConverter = new VideoConverter();
     private final Logger logger = Logger.getLogger(VideoController.class.getName());
 
-    public VideoController(SimpleConversionJob simpleConversionJob) {
+    public VideoController(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
         this.simpleConversionJob = simpleConversionJob;
+        this.activeConversions = activeConversions;
     }
 
     @Override
     public void run() {
+        String outputFilePath = simpleConversionJob.getOutputFile().getAbsolutePath();
+        activeConversions.add(outputFilePath);
+
         boolean correctFormat = isCorrectFormat(simpleConversionJob);
         logger.info("Correct format? - " + correctFormat);
         if (!correctFormat) {
             videoConverter.convertMedia(simpleConversionJob);
         }
+
+        activeConversions.remove(outputFilePath);
     }
 
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
