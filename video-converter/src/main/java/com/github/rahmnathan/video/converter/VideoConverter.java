@@ -13,14 +13,12 @@ public class VideoConverter {
     public void convertMedia(SimpleConversionJob conversionJob) {
         VideoConverterUtils.validateParams(conversionJob);
 
-        String existingFilePath = conversionJob.getInputFile().getAbsolutePath();
-        logger.info("Encoding " + existingFilePath + " to " + conversionJob.getOutputFile().getAbsolutePath());
-
         try {
             FFmpegJob ffmpegJob = VideoConverterUtils.buildFFmpegJob(conversionJob);
             ffmpegJob.run();
             FFmpegJob.State result = VideoConverterUtils.waitForResult(ffmpegJob);
 
+            String existingFilePath = conversionJob.getInputFile().getAbsolutePath();
             if(result == FFmpegJob.State.FAILED){
                 logger.info("Encoding failed: " + existingFilePath);
             } else if(result == FFmpegJob.State.FINISHED){

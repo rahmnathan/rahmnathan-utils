@@ -4,6 +4,7 @@ import com.github.rahmnathan.video.data.SimpleConversionJob;
 import com.github.rahmnathan.video.converter.VideoConverter;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class VideoController implements Runnable {
 
     @Override
     public void run() {
+        MDC.put("Filename", simpleConversionJob.getInputFile().getName());
         String outputFilePath = simpleConversionJob.getOutputFile().getAbsolutePath();
         activeConversions.add(outputFilePath);
 
@@ -33,30 +35,40 @@ public class VideoController implements Runnable {
         }
 
         activeConversions.remove(outputFilePath);
+        MDC.clear();
     }
 
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
         if (simpleConversionJob.getFfprobe() == null) return true;
 
-        boolean correctVideoCodec = simpleConversionJob.getVideoCodec() == null;
-        boolean correctAudioCodec = simpleConversionJob.getAudioCodec() == null;
+        boolean correctVideoCodec = !simpleConversionJob.getVideoCodec().isPresent();
+        boolean correctAudioCodec = !simpleConversionJob.getAudioCodec().isPresent();
+        boolean correctFormat = !simpleConversionJob.getContainerFormat().isPresent();
 
         try {
             FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
 
+            if(!correctFormat){
+                String format_name = probeResult.getFormat().format_name;
+                logger.info("Container format - " + format_name);
+                if(format_name != null && format_name.equalsIgnoreCase(simpleConversionJob.getContainerFormat().toString())){
+                    correctFormat = true;
+                }
+            }
+
             for (FFmpegStream stream : probeResult.getStreams()) {
                 String codecName = stream.codec_name;
                 logger.info("Stream codec - " + codecName);
-                if (codecName.equalsIgnoreCase(simpleConversionJob.getAudioCodec().name()))
+                if (!correctAudioCodec && codecName.equalsIgnoreCase(simpleConversionJob.getAudioCodec().get().name()))
                     correctAudioCodec = true;
-                else if (codecName.equalsIgnoreCase(simpleConversionJob.getVideoCodec().name()))
+                else if (!correctVideoCodec && codecName.equalsIgnoreCase(simpleConversionJob.getVideoCodec().get().name()))
                     correctVideoCodec = true;
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Failed to determine video format", e);
         }
 
-        return correctVideoCodec && correctAudioCodec;
+        return correctVideoCodec && correctAudioCodec && correctFormat;
     }
 }

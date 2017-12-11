@@ -43,10 +43,9 @@ class VideoConverterUtils {
                 .overrideOutputFiles(true)
                 .addOutput(conversionJob.getOutputFile().getAbsolutePath());
 
-        if (conversionJob.getAudioCodec() != null)
-            outputBuilder.setAudioCodec(conversionJob.getAudioCodec().getEncoder());
-        if (conversionJob.getVideoCodec() != null)
-            outputBuilder.setVideoCodec(conversionJob.getVideoCodec().getEncoder());
+        conversionJob.getContainerFormat().ifPresent(format -> outputBuilder.setFormat(format.name()));
+        conversionJob.getAudioCodec().ifPresent(audioCodec -> outputBuilder.setAudioCodec(audioCodec.getEncoder()));
+        conversionJob.getVideoCodec().ifPresent(videoCodec -> outputBuilder.setVideoCodec(videoCodec.getEncoder()));
 
         return outputBuilder.done();
     }
