@@ -32,7 +32,7 @@ class VideoConverterUtils {
 
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
-            int percentage = Double.valueOf((progress.out_time_ns / duration) / 10000).intValue();
+            int percentage = Double.valueOf((progress.out_time_ns / duration) / 100000000).intValue();
             logger.info(existingFilePath + " Encoding progress -> " + percentage + "%");
         });
     }
