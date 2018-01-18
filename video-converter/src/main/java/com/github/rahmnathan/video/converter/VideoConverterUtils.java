@@ -6,9 +6,9 @@ import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import net.bramp.ffmpeg.builder.FFmpegOutputBuilder;
 import net.bramp.ffmpeg.job.FFmpegJob;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
-import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,11 +16,11 @@ class VideoConverterUtils {
     private static final Logger logger = Logger.getLogger(VideoConverterUtils.class.getName());
 
     static void validateParams(SimpleConversionJob simpleConversionJob) {
-        Validate.notNull(simpleConversionJob, "Conversion data is null");
-        Validate.notNull(simpleConversionJob.getFfmpeg(), "FFmpeg is null");
-        Validate.notNull(simpleConversionJob.getFfprobe(), "FFprobe is null");
-        Validate.notNull(simpleConversionJob.getInputFile(), "Input file is null");
-        Validate.notNull(simpleConversionJob.getOutputFile(), "Output file is null");
+        Objects.requireNonNull(simpleConversionJob, "Conversion data is null");
+        Objects.requireNonNull(simpleConversionJob.getFfmpeg(), "FFmpeg is null");
+        Objects.requireNonNull(simpleConversionJob.getFfprobe(), "FFprobe is null");
+        Objects.requireNonNull(simpleConversionJob.getInputFile(), "Input file is null");
+        Objects.requireNonNull(simpleConversionJob.getOutputFile(), "Output file is null");
     }
 
     static FFmpegJob buildFFmpegJob(SimpleConversionJob conversionJob) throws IOException {
