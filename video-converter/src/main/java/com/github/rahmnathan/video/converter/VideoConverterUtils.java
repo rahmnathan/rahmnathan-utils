@@ -15,6 +15,10 @@ import java.util.Objects;
 class VideoConverterUtils {
     private static final Logger logger = LoggerFactory.getLogger(VideoConverterUtils.class.getName());
 
+    private VideoConverterUtils(){
+        // No need to instantiate this
+    }
+
     static void validateParams(SimpleConversionJob simpleConversionJob) {
         Objects.requireNonNull(simpleConversionJob, "Conversion data is null");
         Objects.requireNonNull(simpleConversionJob.getFfmpeg(), "FFmpeg is null");

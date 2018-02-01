@@ -59,7 +59,7 @@ public class VideoController implements Runnable {
 
             for (FFmpegStream stream : probeResult.getStreams()) {
                 String codecName = stream.codec_name;
-                logger.info("Stream codec - " + codecName);
+                logger.info("Stream codec - {}", codecName);
                 if (!correctAudioCodec && codecName.equalsIgnoreCase(simpleConversionJob.getAudioCodec().get().name()))
                     correctAudioCodec = true;
                 else if (!correctVideoCodec && codecName.equalsIgnoreCase(simpleConversionJob.getVideoCodec().get().name()))

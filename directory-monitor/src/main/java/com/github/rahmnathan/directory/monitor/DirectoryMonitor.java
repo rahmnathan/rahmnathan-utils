@@ -1,6 +1,5 @@
 package com.github.rahmnathan.directory.monitor;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,7 @@ public class DirectoryMonitor {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                         logger.info("registering {} in watcher service", dir);
-                        WatchKey watchKey = dir.register(watchService, new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
+                        WatchKey watchKey = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE);
                         keys.put(watchKey, dir);
                         return FileVisitResult.CONTINUE;
                     }

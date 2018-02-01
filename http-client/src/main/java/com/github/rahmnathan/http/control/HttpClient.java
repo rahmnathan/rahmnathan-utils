@@ -13,6 +13,10 @@ import java.util.Map;
 public class HttpClient {
     private static final Logger logger = LoggerFactory.getLogger(HttpClient.class.getName());
 
+    private HttpClient(){
+        // No need to instantiate this
+    }
+
     public static String getResponseAsString(String url, HttpRequestMethod requestMethod, String body, Map<String, String> headers) {
         HttpURLConnection connection = getUrlConnection(url);
 
