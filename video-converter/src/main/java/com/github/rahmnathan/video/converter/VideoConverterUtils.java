@@ -6,14 +6,14 @@ import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import net.bramp.ffmpeg.builder.FFmpegOutputBuilder;
 import net.bramp.ffmpeg.job.FFmpegJob;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class VideoConverterUtils {
-    private static final Logger logger = Logger.getLogger(VideoConverterUtils.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(VideoConverterUtils.class.getName());
 
     static void validateParams(SimpleConversionJob simpleConversionJob) {
         Objects.requireNonNull(simpleConversionJob, "Conversion data is null");
@@ -33,7 +33,7 @@ class VideoConverterUtils {
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
             int percentage = Double.valueOf((progress.out_time_ns / duration) / 100000000).intValue();
-            logger.info(existingFilePath + " Encoding progress -> " + percentage + "%");
+            logger.info("{} Encoding progress -> {}%", existingFilePath, percentage);
         });
     }
 
@@ -65,7 +65,7 @@ class VideoConverterUtils {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
-                logger.log(Level.SEVERE, "Thread sleep operation interrupted", e);
+                logger.error("Thread sleep operation interrupted", e);
                 break;
             }
         }

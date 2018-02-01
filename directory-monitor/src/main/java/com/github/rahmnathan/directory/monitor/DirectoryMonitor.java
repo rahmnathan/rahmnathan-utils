@@ -1,6 +1,8 @@
 package com.github.rahmnathan.directory.monitor;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -12,15 +14,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class DirectoryMonitor {
-    private static final Logger logger = Logger.getLogger(DirectoryMonitor.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(DirectoryMonitor.class.getName());
     private final ExecutorService executor;
     private final Collection<DirectoryMonitorObserver> observers;
     private final Map<WatchKey, Path> keys = new HashMap<>();
@@ -47,7 +47,7 @@ public class DirectoryMonitor {
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed getting watch service", e);
+            logger.error("Failed getting watch service", e);
             return;
         }
 
@@ -56,14 +56,14 @@ public class DirectoryMonitor {
                 Files.walkFileTree(p, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                        logger.info("registering " + dir + " in watcher service");
+                        logger.info("registering {} in watcher service", dir);
                         WatchKey watchKey = dir.register(watchService, new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE}, SensitivityWatchEventModifier.HIGH);
                         keys.put(watchKey, dir);
                         return FileVisitResult.CONTINUE;
                     }
                 });
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failure registering directory in directory monitor", e);
+                logger.error("Failure registering directory in directory monitor", e);
             }
         };
 
@@ -73,7 +73,7 @@ public class DirectoryMonitor {
                 try {
                     key = watchService.take();
                 } catch (InterruptedException e) {
-                    logger.log(Level.SEVERE, "Error getting watch key from directory monitor", e);
+                    logger.error("Error getting watch key from directory monitor", e);
                     continue;
                 }
 

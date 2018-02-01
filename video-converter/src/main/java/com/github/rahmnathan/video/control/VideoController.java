@@ -4,18 +4,18 @@ import com.github.rahmnathan.video.data.SimpleConversionJob;
 import com.github.rahmnathan.video.converter.VideoConverter;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class VideoController implements Runnable {
     private final SimpleConversionJob simpleConversionJob;
     private volatile Set<String> activeConversions;
     private final VideoConverter videoConverter = new VideoConverter();
-    private final Logger logger = Logger.getLogger(VideoController.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(VideoController.class.getName());
 
     public VideoController(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
         this.simpleConversionJob = simpleConversionJob;
@@ -29,7 +29,7 @@ public class VideoController implements Runnable {
         activeConversions.add(outputFilePath);
 
         boolean correctFormat = isCorrectFormat(simpleConversionJob);
-        logger.info("Correct format? - " + correctFormat);
+        logger.info("Correct format? - {}", correctFormat);
         if (!correctFormat) {
             videoConverter.convertMedia(simpleConversionJob);
         }
@@ -50,9 +50,9 @@ public class VideoController implements Runnable {
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
 
             if(!correctFormat){
-                String format_name = probeResult.getFormat().format_name;
-                logger.info("Container format - " + format_name);
-                if(format_name != null && format_name.equalsIgnoreCase(simpleConversionJob.getContainerFormat().toString())){
+                String formatName = probeResult.getFormat().format_name;
+                logger.info("Container format - {}", formatName);
+                if(formatName != null && formatName.equalsIgnoreCase(simpleConversionJob.getContainerFormat().toString())){
                     correctFormat = true;
                 }
             }
@@ -66,7 +66,7 @@ public class VideoController implements Runnable {
                     correctVideoCodec = true;
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to determine video format", e);
+            logger.error("Failed to determine video format", e);
         }
 
         return correctVideoCodec && correctAudioCodec && correctFormat;

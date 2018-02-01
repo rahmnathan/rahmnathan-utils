@@ -2,13 +2,13 @@ package com.github.rahmnathan.video.converter;
 
 import com.github.rahmnathan.video.data.SimpleConversionJob;
 import net.bramp.ffmpeg.job.FFmpegJob;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class VideoConverter {
-    private final Logger logger = Logger.getLogger(VideoConverter.class.getName());
+    private final Logger logger = LoggerFactory.getLogger(VideoConverter.class.getName());
 
     public void convertMedia(SimpleConversionJob conversionJob) {
         VideoConverterUtils.validateParams(conversionJob);
@@ -26,7 +26,7 @@ public class VideoConverter {
                 conversionJob.getInputFile().delete();
             }
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to convert video", e);
+            logger.error("Failed to convert video", e);
         }
     }
 }

@@ -1,16 +1,17 @@
 package com.github.rahmnathan.http.control;
 
 import com.github.rahmnathan.http.data.HttpRequestMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class HttpClient {
-    private static final Logger logger = Logger.getLogger(HttpClient.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HttpClient.class.getName());
 
     public static String getResponseAsString(String url, HttpRequestMethod requestMethod, String body, Map<String, String> headers) {
         HttpURLConnection connection = getUrlConnection(url);
@@ -20,12 +21,12 @@ public class HttpClient {
                 try {
                     connection.setRequestMethod(requestMethod.name());
                 } catch (ProtocolException e){
-                    logger.severe(e.toString());
+                    logger.error("Failure setting request method", e);
                 }
             }
 
             if(headers != null){
-                headers.entrySet().forEach(entry -> connection.addRequestProperty(entry.getKey(), entry.getValue()));
+                headers.forEach(connection::addRequestProperty);
             }
 
             if(body != null){
@@ -33,7 +34,7 @@ public class HttpClient {
                 try(BufferedWriter br = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))){
                     br.write(body);
                 } catch (IOException e){
-                    logger.severe(e.toString());
+                    logger.error("Failure writing to url", e);
                 }
             }
 
@@ -43,7 +44,7 @@ public class HttpClient {
 
                 return response.toString();
             } catch (IOException e) {
-                logger.severe(e.toString());
+                logger.error("Failure reading response", e);
             } finally {
                 connection.disconnect();
             }
@@ -67,7 +68,7 @@ public class HttpClient {
 
                 return baos.toByteArray();
             } catch (Exception e) {
-                logger.severe(e.toString());
+                logger.error("Error getting response from url", e);
             } finally {
                 connection.disconnect();
             }
@@ -80,7 +81,7 @@ public class HttpClient {
         try {
             return  (HttpURLConnection) new URL(urlString).openConnection();
         } catch (IOException e) {
-            logger.severe(e.toString());
+            logger.error("Error opening http connection", e);
             return null;
         }
     }
