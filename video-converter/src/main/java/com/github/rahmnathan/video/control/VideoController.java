@@ -1,5 +1,6 @@
 package com.github.rahmnathan.video.control;
 
+import com.github.rahmnathan.video.codec.ContainerFormat;
 import com.github.rahmnathan.video.data.SimpleConversionJob;
 import com.github.rahmnathan.video.converter.VideoConverter;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
@@ -51,10 +52,11 @@ public class VideoController implements Runnable {
 
             if(!correctFormat){
                 String videoFormatName = probeResult.getFormat().format_name;
-                String requiredFormatName = simpleConversionJob.getContainerFormat().name().toLowerCase();
                 logger.info("Container format - {}", videoFormatName);
-                if(videoFormatName.toLowerCase().contains(requiredFormatName)){
-                    correctFormat = true;
+                for(ContainerFormat containerFormat : simpleConversionJob.getContainerFormats()){
+                    if(videoFormatName.toLowerCase().contains(containerFormat.getFfmpegName())){
+                        correctFormat = true;
+                    }
                 }
             }
 

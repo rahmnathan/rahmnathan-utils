@@ -50,7 +50,7 @@ class VideoConverterUtils {
                 .overrideOutputFiles(true)
                 .addOutput(conversionJob.getOutputFile().getAbsolutePath());
 
-        ContainerFormat containerFormat = conversionJob.getContainerFormat();
+        ContainerFormat containerFormat = conversionJob.getContainerFormats();
         if(containerFormat != null){
             outputBuilder.setFormat(containerFormat.name());
         }

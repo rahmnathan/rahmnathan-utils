@@ -8,28 +8,18 @@ import net.bramp.ffmpeg.FFprobe;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.Set;
 
 public class SimpleConversionJob {
-    private final FFmpeg ffmpeg;
-    private final FFprobe ffprobe;
-    private final File inputFile;
-    private final File outputFile;
-    private final ContainerFormat containerFormat;
-    private final AudioCodec audioCodec;
-    private final VideoCodec videoCodec;
+    private FFmpeg ffmpeg;
+    private FFprobe ffprobe;
+    private File inputFile;
+    private File outputFile;
+    private Set<ContainerFormat> containerFormat;
+    private AudioCodec audioCodec;
+    private VideoCodec videoCodec;
 
-    private SimpleConversionJob(File inputFile, File outputFile, FFmpeg ffmpeg, FFprobe ffprobe,
-                                AudioCodec audioCodec, VideoCodec videoCodec, ContainerFormat containerFormat) {
-        this.inputFile = inputFile;
-        this.outputFile = outputFile;
-        this.ffmpeg = ffmpeg;
-        this.ffprobe = ffprobe;
-        this.containerFormat = containerFormat;
-        this.audioCodec = audioCodec;
-        this.videoCodec = videoCodec;
-    }
-
-    public ContainerFormat getContainerFormat() {
+    public Set<ContainerFormat> getContainerFormats() {
         return containerFormat;
     }
 
@@ -42,7 +32,7 @@ public class SimpleConversionJob {
     }
 
     public boolean hasContainerFormat(){
-        return containerFormat != null;
+        return containerFormat != null && containerFormat.size() != 0;
     }
 
     public boolean hasAudioCodec(){
@@ -70,55 +60,52 @@ public class SimpleConversionJob {
     }
 
     public static class Builder {
-        private File inputFile;
-        private File outputFile;
-        private FFmpeg ffmpeg;
-        private FFprobe ffprobe;
-        private ContainerFormat containerFormat;
-        private VideoCodec videoCodec;
-        private AudioCodec audioCodec;
+        private SimpleConversionJob conversionJob = new SimpleConversionJob();
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder setContainerFormat(ContainerFormat containerFormat) {
-            this.containerFormat = containerFormat;
+        public Builder setContainerFormat(Set<ContainerFormat> containerFormat) {
+            conversionJob.containerFormat = containerFormat;
             return this;
         }
 
         public Builder setVideoCodec(VideoCodec videoCodec) {
-            this.videoCodec = videoCodec;
+            conversionJob.videoCodec = videoCodec;
             return this;
         }
 
         public Builder setAudioCodec(AudioCodec audioCodec) {
-            this.audioCodec = audioCodec;
+            conversionJob.audioCodec = audioCodec;
             return this;
         }
 
         public Builder setFfmpeg(FFmpeg ffmpeg) {
-            this.ffmpeg = ffmpeg;
+            conversionJob.ffmpeg = ffmpeg;
             return this;
         }
 
         public Builder setFfprobe(FFprobe ffprobe) {
-            this.ffprobe = ffprobe;
+            conversionJob.ffprobe = ffprobe;
             return this;
         }
 
         public Builder setOutputFile(File outputFile) {
-            this.outputFile = outputFile;
+            conversionJob.outputFile = outputFile;
             return this;
         }
 
         public Builder setInputFile(File inputFile) {
-            this.inputFile = inputFile;
+            conversionJob.inputFile = inputFile;
             return this;
         }
 
         public SimpleConversionJob build() {
-            return new SimpleConversionJob(inputFile, outputFile, ffmpeg, ffprobe, audioCodec, videoCodec, containerFormat);
+            SimpleConversionJob result = conversionJob;
+            conversionJob = new SimpleConversionJob();
+
+            return result;
         }
     }
 }
