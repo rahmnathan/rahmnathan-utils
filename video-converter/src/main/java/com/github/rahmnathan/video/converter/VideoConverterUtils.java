@@ -1,5 +1,8 @@
 package com.github.rahmnathan.video.converter;
 
+import com.github.rahmnathan.video.codec.AudioCodec;
+import com.github.rahmnathan.video.codec.ContainerFormat;
+import com.github.rahmnathan.video.codec.VideoCodec;
 import com.github.rahmnathan.video.data.SimpleConversionJob;
 import net.bramp.ffmpeg.FFmpegExecutor;
 import net.bramp.ffmpeg.builder.FFmpegBuilder;
@@ -47,9 +50,20 @@ class VideoConverterUtils {
                 .overrideOutputFiles(true)
                 .addOutput(conversionJob.getOutputFile().getAbsolutePath());
 
-        conversionJob.getContainerFormat().ifPresent(format -> outputBuilder.setFormat(format.name()));
-        conversionJob.getAudioCodec().ifPresent(audioCodec -> outputBuilder.setAudioCodec(audioCodec.getEncoder()));
-        conversionJob.getVideoCodec().ifPresent(videoCodec -> outputBuilder.setVideoCodec(videoCodec.getEncoder()));
+        ContainerFormat containerFormat = conversionJob.getContainerFormat();
+        if(containerFormat != null){
+            outputBuilder.setFormat(containerFormat.name());
+        }
+
+        AudioCodec audioCodec = conversionJob.getAudioCodec();
+        if(audioCodec != null){
+            outputBuilder.setAudioCodec(audioCodec.getEncoder());
+        }
+
+        VideoCodec videoCodec = conversionJob.getVideoCodec();
+        if(videoCodec != null){
+            outputBuilder.setVideoCodec(videoCodec.getEncoder());
+        }
 
         return outputBuilder.done();
     }
