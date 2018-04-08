@@ -41,18 +41,19 @@ public class VideoController implements Runnable {
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
         if (simpleConversionJob.getFfprobe() == null) return true;
 
-        boolean correctVideoCodec = !simpleConversionJob.getVideoCodec().isPresent();
-        boolean correctAudioCodec = !simpleConversionJob.getAudioCodec().isPresent();
-        boolean correctFormat = !simpleConversionJob.getContainerFormat().isPresent();
+        boolean correctVideoCodec = !simpleConversionJob.hasVideoCodec();
+        boolean correctAudioCodec = !simpleConversionJob.hasAudioCodec();
+        boolean correctFormat = !simpleConversionJob.hasContainerFormat();
 
         try {
             FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
 
             if(!correctFormat){
-                String formatName = probeResult.getFormat().format_name;
-                logger.info("Container format - {}", formatName);
-                if(formatName != null && formatName.equalsIgnoreCase(simpleConversionJob.getContainerFormat().toString())){
+                String videoFormatName = probeResult.getFormat().format_name;
+                String requiredFormatName = simpleConversionJob.getContainerFormat().name().toLowerCase();
+                logger.info("Container format - {}", videoFormatName);
+                if(videoFormatName.toLowerCase().contains(requiredFormatName)){
                     correctFormat = true;
                 }
             }
@@ -60,9 +61,10 @@ public class VideoController implements Runnable {
             for (FFmpegStream stream : probeResult.getStreams()) {
                 String codecName = stream.codec_name;
                 logger.info("Stream codec - {}", codecName);
-                if (!correctAudioCodec && codecName.equalsIgnoreCase(simpleConversionJob.getAudioCodec().get().name()))
+
+                if (codecName.toLowerCase().contains(simpleConversionJob.getAudioCodec().name().toLowerCase()))
                     correctAudioCodec = true;
-                else if (!correctVideoCodec && codecName.equalsIgnoreCase(simpleConversionJob.getVideoCodec().get().name()))
+                else if (codecName.toLowerCase().contains(simpleConversionJob.getVideoCodec().name().toLowerCase()))
                     correctVideoCodec = true;
             }
         } catch (IOException e) {

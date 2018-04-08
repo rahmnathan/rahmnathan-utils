@@ -29,16 +29,28 @@ public class SimpleConversionJob {
         this.videoCodec = videoCodec;
     }
 
-    public Optional<ContainerFormat> getContainerFormat() {
-        return Optional.ofNullable(containerFormat);
+    public ContainerFormat getContainerFormat() {
+        return containerFormat;
     }
 
-    public Optional<AudioCodec> getAudioCodec() {
-        return Optional.ofNullable(audioCodec);
+    public AudioCodec getAudioCodec() {
+        return audioCodec;
     }
 
-    public Optional<VideoCodec> getVideoCodec() {
-        return Optional.ofNullable(videoCodec);
+    public VideoCodec getVideoCodec() {
+        return videoCodec;
+    }
+
+    public boolean hasContainerFormat(){
+        return containerFormat != null;
+    }
+
+    public boolean hasAudioCodec(){
+        return audioCodec != null;
+    }
+
+    public boolean hasVideoCodec(){
+        return videoCodec != null;
     }
 
     public FFmpeg getFfmpeg() {
