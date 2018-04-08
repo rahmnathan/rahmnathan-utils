@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
 
 class VideoConverterUtils {
     private static final Logger logger = LoggerFactory.getLogger(VideoConverterUtils.class.getName());
@@ -50,9 +51,9 @@ class VideoConverterUtils {
                 .overrideOutputFiles(true)
                 .addOutput(conversionJob.getOutputFile().getAbsolutePath());
 
-        ContainerFormat containerFormat = conversionJob.getContainerFormats();
-        if(containerFormat != null){
-            outputBuilder.setFormat(containerFormat.name());
+        Set<ContainerFormat> containerFormats = conversionJob.getContainerFormats();
+        if(containerFormats != null && containerFormats.size() != 0){
+            outputBuilder.setFormat(containerFormats.iterator().next().getFfmpegName());
         }
 
         AudioCodec audioCodec = conversionJob.getAudioCodec();

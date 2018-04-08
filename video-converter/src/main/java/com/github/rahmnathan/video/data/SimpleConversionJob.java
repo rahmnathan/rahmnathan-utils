@@ -7,17 +7,18 @@ import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFprobe;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 public class SimpleConversionJob {
-    private FFmpeg ffmpeg;
-    private FFprobe ffprobe;
-    private File inputFile;
-    private File outputFile;
-    private Set<ContainerFormat> containerFormat;
+    private Set<ContainerFormat> containerFormat = new HashSet<>();
     private AudioCodec audioCodec;
     private VideoCodec videoCodec;
+    private FFprobe ffprobe;
+    private File outputFile;
+    private File inputFile;
+    private FFmpeg ffmpeg;
 
     public Set<ContainerFormat> getContainerFormats() {
         return containerFormat;
