@@ -1,6 +1,5 @@
 package com.github.rahmnathan.video.cast.handbrake.data;
 
-import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFprobe;
 
 import java.io.File;
@@ -9,11 +8,6 @@ public class SimpleConversionJob {
     private FFprobe ffprobe;
     private File outputFile;
     private File inputFile;
-    private FFmpeg ffmpeg;
-
-    public FFmpeg getFfmpeg() {
-        return ffmpeg;
-    }
 
     public FFprobe getFfprobe() {
         return ffprobe;
@@ -32,11 +26,6 @@ public class SimpleConversionJob {
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder setFfmpeg(FFmpeg ffmpeg) {
-            conversionJob.ffmpeg = ffmpeg;
-            return this;
         }
 
         public Builder setFfprobe(FFprobe ffprobe) {
@@ -68,7 +57,6 @@ public class SimpleConversionJob {
                 "ffprobe=" + ffprobe +
                 ", outputFile=" + outputFile +
                 ", inputFile=" + inputFile +
-                ", ffmpeg=" + ffmpeg +
                 '}';
     }
 }
