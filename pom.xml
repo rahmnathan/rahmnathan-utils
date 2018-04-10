@@ -18,6 +18,7 @@
         <module>http-client</module>
         <module>directory-monitor</module>
         <module>video-converter</module>
+        <module>cast-video-converter-handbrake</module>
     </modules>
 
     <dependencyManagement>
