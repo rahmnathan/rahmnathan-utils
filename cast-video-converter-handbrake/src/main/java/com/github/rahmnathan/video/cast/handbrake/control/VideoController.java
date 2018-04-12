@@ -1,7 +1,7 @@
 package com.github.rahmnathan.video.cast.handbrake.control;
 
-import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import com.github.rahmnathan.video.cast.handbrake.converter.VideoConverter;
+import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
 import org.slf4j.Logger;
