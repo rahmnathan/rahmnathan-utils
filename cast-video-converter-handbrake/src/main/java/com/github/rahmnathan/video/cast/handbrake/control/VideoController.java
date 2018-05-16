@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 public class VideoController implements Runnable {
@@ -51,7 +52,12 @@ public class VideoController implements Runnable {
 
                 String videoFormatName = probeResult.getFormat().format_name;
                 logger.info("Container format - {}", videoFormatName);
-                for(String containerFormat : Set.of("mp4", "matroska")) {
+
+                Set<String> containerFormats = new HashSet<>();
+                containerFormats.add("mp4");
+                containerFormats.add("matroska");
+
+                for(String containerFormat : containerFormats) {
                     if (videoFormatName.toLowerCase().contains(containerFormat)) {
                         correctFormat = true;
                     }

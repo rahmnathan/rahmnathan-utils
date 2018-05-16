@@ -52,7 +52,7 @@ public class DirectoryMonitor {
 
         register = p -> {
             try {
-                Files.walkFileTree(p, new SimpleFileVisitor<>() {
+                Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                         logger.info("registering {} in watcher service", dir);
