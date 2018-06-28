@@ -8,11 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
-public class VideoController implements Runnable {
+public class VideoController implements Supplier<String> {
     private final SimpleConversionJob simpleConversionJob;
     private volatile Set<String> activeConversions;
     private final VideoConverter videoConverter = new VideoConverter();
@@ -24,19 +26,24 @@ public class VideoController implements Runnable {
     }
 
     @Override
-    public void run() {
-        MDC.put("Filename", simpleConversionJob.getInputFile().getName());
-        String outputFilePath = simpleConversionJob.getOutputFile().getAbsolutePath();
-        activeConversions.add(outputFilePath);
+    public String get() {
+        File inputFile = simpleConversionJob.getInputFile();
+        MDC.put("Filename", inputFile.getName());
+        String resultPath = simpleConversionJob.getOutputFile().getAbsolutePath();
 
         boolean correctFormat = isCorrectFormat(simpleConversionJob);
         logger.info("Correct format? - {}", correctFormat);
+
         if (!correctFormat) {
+            activeConversions.add(resultPath);
             videoConverter.convertMedia(simpleConversionJob);
+            activeConversions.remove(resultPath);
+        } else {
+            resultPath = inputFile.getAbsolutePath();
         }
 
-        activeConversions.remove(outputFilePath);
         MDC.clear();
+        return resultPath;
     }
 
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
