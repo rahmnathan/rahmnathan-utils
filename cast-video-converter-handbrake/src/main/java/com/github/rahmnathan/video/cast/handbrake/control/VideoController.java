@@ -12,21 +12,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
-public class VideoController implements Supplier<String> {
-    private final SimpleConversionJob simpleConversionJob;
-    private volatile Set<String> activeConversions;
+public class VideoController {
     private final VideoConverter videoConverter = new VideoConverter();
     private final Logger logger = LoggerFactory.getLogger(VideoController.class.getName());
 
-    public VideoController(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
-        this.simpleConversionJob = simpleConversionJob;
-        this.activeConversions = activeConversions;
-    }
-
-    @Override
-    public String get() {
+    public String convertVideo(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
         File inputFile = simpleConversionJob.getInputFile();
         MDC.put("Filename", inputFile.getName());
         String resultPath = simpleConversionJob.getOutputFile().getAbsolutePath();
