@@ -12,12 +12,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
-public class VideoController {
+public class VideoController implements Supplier<String> {
     private final VideoConverter videoConverter = new VideoConverter();
+    private final SimpleConversionJob simpleConversionJob;
+    private final Set<String> activeConversions;
     private final Logger logger = LoggerFactory.getLogger(VideoController.class.getName());
 
-    public String convertVideo(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
+    public VideoController(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
+        this.simpleConversionJob = simpleConversionJob;
+        this.activeConversions = activeConversions;
+    }
+
+    @Override
+    public String get() {
         File inputFile = simpleConversionJob.getInputFile();
         MDC.put("Filename", inputFile.getName());
         String resultPath = simpleConversionJob.getOutputFile().getAbsolutePath();
@@ -48,18 +57,18 @@ public class VideoController {
             FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
 
-                String videoFormatName = probeResult.getFormat().format_name;
-                logger.info("Container format - {}", videoFormatName);
+            String videoFormatName = probeResult.getFormat().format_name;
+            logger.info("Container format - {}", videoFormatName);
 
-                Set<String> containerFormats = new HashSet<>();
-                containerFormats.add("mp4");
-                containerFormats.add("matroska");
+            Set<String> containerFormats = new HashSet<>();
+            containerFormats.add("mp4");
+            containerFormats.add("matroska");
 
-                for(String containerFormat : containerFormats) {
-                    if (videoFormatName.toLowerCase().contains(containerFormat)) {
-                        correctFormat = true;
-                    }
+            for (String containerFormat : containerFormats) {
+                if (videoFormatName.toLowerCase().contains(containerFormat)) {
+                    correctFormat = true;
                 }
+            }
 
             for (FFmpegStream stream : probeResult.getStreams()) {
                 String codecName = stream.codec_name;
