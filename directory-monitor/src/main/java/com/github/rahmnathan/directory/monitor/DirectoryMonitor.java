@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,15 +18,16 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class DirectoryMonitor {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryMonitor.class.getName());
-    private final ExecutorService executor;
     private final Collection<DirectoryMonitorObserver> observers;
     private final Map<WatchKey, Path> keys = new HashMap<>();
+    private final Set<Path> paths = new HashSet<>();
+    private final ExecutorService executor;
     private WatchService watchService;
     private Consumer<Path> register;
 
     public DirectoryMonitor(Collection<DirectoryMonitorObserver> observers) {
-        this.observers = observers;
         this.executor = Executors.newSingleThreadExecutor();
+        this.observers = observers;
         startRecursiveWatcher();
     }
 
@@ -36,8 +35,14 @@ public class DirectoryMonitor {
         observers.forEach(observer -> CompletableFuture.runAsync(() -> observer.directoryModified(event, absolutePath)));
     }
 
+    public Set<Path> getPaths() {
+        return paths;
+    }
+
     public void registerDirectory(String pathToMonitor) {
-        register.accept(Paths.get(pathToMonitor));
+        Path path = Paths.get(pathToMonitor);
+        register.accept(path);
+        paths.add(path);
     }
 
     private void startRecursiveWatcher() {
