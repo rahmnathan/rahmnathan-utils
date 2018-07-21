@@ -40,9 +40,7 @@ public class DirectoryMonitor {
     }
 
     public void registerDirectory(String pathToMonitor) {
-        Path path = Paths.get(pathToMonitor);
-        register.accept(path);
-        paths.add(path);
+        register.accept(Paths.get(pathToMonitor));
     }
 
     private void startRecursiveWatcher() {
@@ -63,6 +61,7 @@ public class DirectoryMonitor {
                         logger.info("registering {} in watcher service", dir);
                         WatchKey watchKey = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE);
                         keys.put(watchKey, dir);
+                        paths.add(dir);
                         return FileVisitResult.CONTINUE;
                     }
                 });
