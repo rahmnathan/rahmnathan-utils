@@ -85,10 +85,11 @@ public class VideoController implements Supplier<String> {
                 else if (codecName.toLowerCase().contains("h264"))
                     correctVideoCodec = true;
             }
+
+            return correctVideoCodec && correctAudioCodec && correctFormat;
         } catch (IOException e) {
             logger.error("Failed to determine video format", e);
+            return true;
         }
-
-        return correctVideoCodec && correctAudioCodec && correctFormat;
     }
 }
