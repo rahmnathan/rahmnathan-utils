@@ -2,6 +2,7 @@ package com.github.rahmnathan.video.cast.handbrake.control;
 
 import com.github.rahmnathan.video.cast.handbrake.converter.VideoConverter;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
+import com.github.rahmnathan.video.cast.handbrake.exception.VideoConversionException;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
 import org.slf4j.Logger;
@@ -36,7 +37,12 @@ public class VideoController implements Supplier<String> {
 
         if (!correctFormat) {
             activeConversions.add(resultPath);
-            videoConverter.convertMedia(simpleConversionJob);
+            try {
+                videoConverter.convertMedia(simpleConversionJob);
+            } catch (VideoConversionException e){
+                logger.error("Failure converting video", e);
+                resultPath = inputFile.getAbsolutePath();
+            }
             activeConversions.remove(resultPath);
         } else {
             resultPath = inputFile.getAbsolutePath();

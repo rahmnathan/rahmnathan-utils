@@ -1,6 +1,7 @@
 package com.github.rahmnathan.video.cast.handbrake.converter;
 
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
+import com.github.rahmnathan.video.cast.handbrake.exception.VideoConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +12,7 @@ import java.util.function.Consumer;
 public class VideoConverter {
     private final Logger logger = LoggerFactory.getLogger(VideoConverter.class.getName());
 
-    public void convertMedia(SimpleConversionJob conversionJob) {
+    public void convertMedia(SimpleConversionJob conversionJob) throws VideoConversionException {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command("HandBrakeCLI", "-i", conversionJob.getInputFile().getAbsolutePath(),
                 "-o", conversionJob.getOutputFile().getAbsolutePath());
@@ -23,7 +24,7 @@ public class VideoConverter {
                 logger.info("Video conversion successful. Removing input file.");
                 conversionJob.getInputFile().delete();
             } else {
-                logger.error("Failure converting video: {}", conversionJob.toString());
+                throw new VideoConversionException("Failure converting video: " + conversionJob.toString());
             }
         } catch (IOException | InterruptedException e){
             logger.error("Failure converting media", e);
