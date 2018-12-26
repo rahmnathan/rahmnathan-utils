@@ -4,10 +4,15 @@ import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import com.github.rahmnathan.video.cast.handbrake.exception.VideoConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VideoConverter {
     private final Logger logger = LoggerFactory.getLogger(VideoConverter.class.getName());
@@ -19,7 +24,7 @@ public class VideoConverter {
 
         try {
             Process process = builder.start();
-            CompletableFuture.runAsync(new StreamConsumer(process.getInputStream(), logger::info));
+            CompletableFuture.runAsync(new StreamConsumer(process.getInputStream(), conversionJob.getOutputFile().getPath(), logger::info));
             if(process.waitFor() == 0){
                 logger.info("Video conversion successful. Removing input file.");
                 conversionJob.getInputFile().delete();
@@ -32,17 +37,33 @@ public class VideoConverter {
     }
 
     private static class StreamConsumer implements Runnable {
+        private final Pattern pattern = Pattern.compile("\\d?\\d(?=.\\d\\d %)");
         private Consumer<String> consumer;
         private InputStream inputStream;
+        private String path;
 
-        private StreamConsumer(InputStream inputStream, Consumer<String> consumer) {
+        private StreamConsumer(InputStream inputStream, String path, Consumer<String> consumer) {
             this.inputStream = inputStream;
             this.consumer = consumer;
+            this.path = path;
         }
 
         @Override
         public void run() {
-            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+            MDC.put("Output-File", path);
+            Set<String> set = new HashSet<>();
+            new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .filter(s -> {
+                        Matcher matcher = pattern.matcher(s);
+                        if(matcher.find()){
+                            return set.add(matcher.group());
+                        }
+
+                        return true;
+                    })
+                    .forEach(consumer);
+
+            MDC.clear();
         }
     }
 }

@@ -53,8 +53,6 @@ public class VideoController implements Supplier<String> {
     }
 
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
-        if (simpleConversionJob.getFfprobe() == null) return true;
-
         boolean correctVideoCodec = false;
         boolean correctAudioCodec = false;
         boolean correctFormat = false;
