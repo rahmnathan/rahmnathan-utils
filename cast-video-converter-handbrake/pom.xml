@@ -26,6 +26,11 @@
             <artifactId>ffmpeg</artifactId>
             <version>0.6.2</version>
         </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>1.1.1</version>
+        </dependency>
     </dependencies>
 
     <build>

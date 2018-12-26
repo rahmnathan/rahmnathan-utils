@@ -3,6 +3,7 @@ package com.github.rahmnathan.video.cast.handbrake.control;
 import com.github.rahmnathan.video.cast.handbrake.converter.VideoConverter;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import com.github.rahmnathan.video.cast.handbrake.exception.VideoConversionException;
+import io.micrometer.core.instrument.Metrics;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 import net.bramp.ffmpeg.probe.FFmpegStream;
 import org.slf4j.Logger;
@@ -13,9 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class VideoController implements Supplier<String> {
+    private static final AtomicInteger ACTIVE_CONVERSION_GAUGE = Metrics.gauge("handbrake.conversions.active", new AtomicInteger(0));
     private final VideoConverter videoConverter = new VideoConverter();
     private final SimpleConversionJob simpleConversionJob;
     private final Set<String> activeConversions;
@@ -37,12 +40,14 @@ public class VideoController implements Supplier<String> {
 
         if (!correctFormat) {
             activeConversions.add(resultPath);
+            ACTIVE_CONVERSION_GAUGE.getAndIncrement();
             try {
                 videoConverter.convertMedia(simpleConversionJob);
             } catch (VideoConversionException e){
                 logger.error("Failure converting video", e);
                 resultPath = inputFile.getAbsolutePath();
             }
+            ACTIVE_CONVERSION_GAUGE.getAndDecrement();
             activeConversions.remove(resultPath);
         } else {
             resultPath = inputFile.getAbsolutePath();
