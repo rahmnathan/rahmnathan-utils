@@ -74,7 +74,6 @@ class VideoConverterUtils {
 
         while (true) {
             if(job.getState() == FFmpegJob.State.FAILED){
-                result = FFmpegJob.State.FAILED;
                 break;
             } else if (job.getState() == FFmpegJob.State.FINISHED){
                 result = FFmpegJob.State.FINISHED;
