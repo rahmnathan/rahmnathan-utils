@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -18,16 +19,18 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class DirectoryMonitor {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryMonitor.class.getName());
-    private final Collection<DirectoryMonitorObserver> observers;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Set<DirectoryMonitorObserver> observers;
     private final Map<WatchKey, Path> keys = new HashMap<>();
     private final Set<Path> paths = new HashSet<>();
-    private final ExecutorService executor;
     private WatchService watchService;
     private Consumer<Path> register;
 
-    public DirectoryMonitor(Collection<DirectoryMonitorObserver> observers) {
-        this.executor = Executors.newSingleThreadExecutor();
-        this.observers = observers;
+    public DirectoryMonitor() {
+        this.observers = ServiceLoader.load(DirectoryMonitorObserver.class).stream()
+                .map(i -> (DirectoryMonitorObserver) i)
+                .collect(Collectors.toSet());
+
         startRecursiveWatcher();
     }
 
@@ -55,7 +58,7 @@ public class DirectoryMonitor {
 
         register = p -> {
             try {
-                Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
+                Files.walkFileTree(p, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                         logger.info("registering {} in watcher service", dir);
