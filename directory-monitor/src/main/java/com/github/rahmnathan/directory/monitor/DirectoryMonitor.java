@@ -1,5 +1,8 @@
 package com.github.rahmnathan.directory.monitor;
 
+import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,63 +10,27 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 public class DirectoryMonitor {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryMonitor.class.getName());
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final Set<DirectoryMonitorObserver> observers;
-    private final Map<WatchKey, Path> keys = new HashMap<>();
     private final Set<Path> paths = new HashSet<>();
-    private WatchService watchService;
-    private Consumer<Path> register;
 
-    public DirectoryMonitor() {
-        this.observers = ServiceLoader.load(DirectoryMonitorObserver.class).stream()
-                .map(i -> (DirectoryMonitorObserver) i)
-                .collect(Collectors.toSet());
+    public DirectoryMonitor(String[] mediaPaths, Set<DirectoryMonitorObserver> observers) {
+        logger.info("Starting Recursive Watcher Service with {} observers.", observers.size());
 
-        startRecursiveWatcher();
-    }
+        FileAlterationMonitor monitor = new FileAlterationMonitor();
+        FileAlterationListener listener = new DirectoryMonitorListener(monitor, observers);
 
-    private void notifyObservers(WatchEvent event, Path absolutePath) {
-        observers.forEach(observer -> CompletableFuture.runAsync(() -> observer.directoryModified(event, absolutePath)));
-    }
-
-    public Set<Path> getPaths() {
-        return paths;
-    }
-
-    public void registerDirectory(String pathToMonitor) {
-        register.accept(Paths.get(pathToMonitor));
-    }
-
-    private void startRecursiveWatcher() {
-        logger.info("Starting Recursive Watcher");
-
-        try {
-            this.watchService = FileSystems.getDefault().newWatchService();
-        } catch (IOException e) {
-            logger.error("Failed getting watch service", e);
-            return;
-        }
-
-        register = p -> {
+        Consumer<Path> register = p -> {
             try {
                 Files.walkFileTree(p, new SimpleFileVisitor<>() {
                     @Override
-                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                         logger.info("registering {} in watcher service", dir);
-                        WatchKey watchKey = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE);
-                        keys.put(watchKey, dir);
+                        FileAlterationObserver observer = new FileAlterationObserver(dir.toFile());
+                        observer.addListener(listener);
+                        monitor.addObserver(observer);
                         paths.add(dir);
                         return FileVisitResult.CONTINUE;
                     }
@@ -73,31 +40,17 @@ public class DirectoryMonitor {
             }
         };
 
-        executor.submit(() -> {
-            while (true) {
-                final WatchKey key;
-                try {
-                    key = watchService.take();
-                } catch (InterruptedException e) {
-                    logger.error("Error getting watch key from directory monitor", e);
-                    continue;
-                }
+        Arrays.stream(mediaPaths).map(Paths::get).forEach(register);
 
-                final Path dir = keys.get(key);
+        try {
+            monitor.start();
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
 
-                key.pollEvents().stream()
-                        .map(e -> ((WatchEvent<Path>) e))
-                        .forEach(event -> {
-                            if (!event.kind().equals(OVERFLOW)) {
-                                final Path absPath = dir.resolve(event.context());
-                                notifyObservers(event, absPath);
-                                if (absPath.toFile().isDirectory()) {
-                                    register.accept(absPath);
-                                }
-                            }
-                        });
-                key.reset();
-            }
-        });
+    }
+
+    public Set<Path> getPaths() {
+        return paths;
     }
 }
