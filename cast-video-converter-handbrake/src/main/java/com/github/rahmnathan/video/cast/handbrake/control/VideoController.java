@@ -43,12 +43,13 @@ public class VideoController implements Supplier<String> {
             ACTIVE_CONVERSION_GAUGE.getAndIncrement();
             try {
                 videoConverter.convertMedia(simpleConversionJob);
+                activeConversions.remove(resultPath);
             } catch (VideoConversionException e){
                 logger.error("Failure converting video", e);
+                activeConversions.remove(resultPath);
                 resultPath = inputFile.getAbsolutePath();
             }
             ACTIVE_CONVERSION_GAUGE.getAndDecrement();
-            activeConversions.remove(resultPath);
         } else {
             resultPath = inputFile.getAbsolutePath();
         }

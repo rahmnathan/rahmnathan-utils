@@ -11,20 +11,18 @@ import java.util.*;
 
 public class DirectoryMonitor {
     private static final Logger logger = LoggerFactory.getLogger(DirectoryMonitor.class.getName());
-    private final Set<Path> paths = new HashSet<>();
 
-    public DirectoryMonitor(String[] mediaPaths, Set<DirectoryMonitorObserver> observers) {
+    public DirectoryMonitor(Set<String> mediaPaths, Set<DirectoryMonitorObserver> observers) {
         logger.info("Starting Recursive Watcher Service with {} observers.", observers.size());
 
         FileAlterationMonitor monitor = new FileAlterationMonitor();
         FileAlterationListener listener = new DirectoryMonitorListener(monitor, observers);
 
-        Arrays.stream(mediaPaths).map(Paths::get).forEach(p -> {
+        mediaPaths.stream().map(Paths::get).forEach(p -> {
             logger.info("registering {} in watcher service", p);
             FileAlterationObserver observer = new FileAlterationObserver(p.toFile());
             observer.addListener(listener);
             monitor.addObserver(observer);
-            paths.add(p);
         });
 
         try {
@@ -32,9 +30,5 @@ public class DirectoryMonitor {
         } catch (Exception e){
             throw new RuntimeException(e);
         }
-    }
-
-    public Set<Path> getPaths() {
-        return paths;
     }
 }
