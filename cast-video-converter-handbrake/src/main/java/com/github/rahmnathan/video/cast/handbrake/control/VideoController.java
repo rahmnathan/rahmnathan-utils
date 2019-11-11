@@ -4,29 +4,37 @@ import com.github.rahmnathan.video.cast.handbrake.converter.VideoConverter;
 import com.github.rahmnathan.video.cast.handbrake.data.SimpleConversionJob;
 import com.github.rahmnathan.video.cast.handbrake.exception.VideoConversionException;
 import io.micrometer.core.instrument.Metrics;
+import net.bramp.ffmpeg.FFprobe;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
-import net.bramp.ffmpeg.probe.FFmpegStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class VideoController implements Supplier<String> {
+    private final Logger logger = LoggerFactory.getLogger(VideoController.class);
     private static final AtomicInteger ACTIVE_CONVERSION_GAUGE = Metrics.gauge("handbrake.conversions.active", new AtomicInteger(0));
+    private static final Set<String> CONTAINER_FORMATS = Set.of("mp4", "matroska");
     private final VideoConverter videoConverter = new VideoConverter();
     private final SimpleConversionJob simpleConversionJob;
     private final Set<String> activeConversions;
-    private final Logger logger = LoggerFactory.getLogger(VideoController.class.getName());
+    private FFprobe fFprobe;
 
     public VideoController(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
         this.simpleConversionJob = simpleConversionJob;
         this.activeConversions = activeConversions;
+
+        try {
+            this.fFprobe = new FFprobe("ffprobe");
+        } catch (IOException e) {
+            logger.warn("Failure loading FFprobe. Won't be able to determine video formats.");
+        }
     }
 
     @Override
@@ -59,40 +67,31 @@ public class VideoController implements Supplier<String> {
     }
 
     private boolean isCorrectFormat(SimpleConversionJob simpleConversionJob) {
-        boolean correctVideoCodec = false;
-        boolean correctAudioCodec = false;
-        boolean correctFormat = false;
+        if(fFprobe == null) {
+            logger.warn("FFprobe not available. Skipping conversion.");
+            return true;
+        }
 
         try {
-            FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
+            FFmpegProbeResult probeResult = fFprobe
                     .probe(simpleConversionJob.getInputFile().getAbsolutePath());
 
-            String videoFormatName = probeResult.getFormat().format_name;
+            String videoFormatName = probeResult.getFormat().format_name.toLowerCase();
             logger.info("Container format - {}", videoFormatName);
 
-            Set<String> containerFormats = new HashSet<>();
-            containerFormats.add("mp4");
-            containerFormats.add("matroska");
+            Set<String> codecNames = probeResult.getStreams().stream()
+                    .map(stream -> stream.codec_name)
+                    .peek(codecName -> logger.info("Stream codec - {}", codecName))
+                    .map(String::toLowerCase)
+                    .collect(Collectors.toUnmodifiableSet());
 
-            for (String containerFormat : containerFormats) {
-                if (videoFormatName.toLowerCase().contains(containerFormat)) {
-                    correctFormat = true;
-                }
-            }
+            boolean correctVideoCodec = codecNames.stream().anyMatch(codecName -> codecName.contains("h264"));
+            boolean correctAudioCodec = codecNames.stream().anyMatch(codecName -> codecName.contains("aac"));
+            boolean correctContainerFormat = CONTAINER_FORMATS.stream().anyMatch(videoFormatName::contains);
 
-            for (FFmpegStream stream : probeResult.getStreams()) {
-                String codecName = stream.codec_name;
-                logger.info("Stream codec - {}", codecName);
-
-                if (codecName.toLowerCase().contains("aac"))
-                    correctAudioCodec = true;
-                else if (codecName.toLowerCase().contains("h264"))
-                    correctVideoCodec = true;
-            }
-
-            return correctVideoCodec && correctAudioCodec && correctFormat;
+            return correctVideoCodec && correctAudioCodec && correctContainerFormat;
         } catch (IOException e) {
-            logger.error("Failed to determine video format", e);
+            logger.error("Failed to determine video format. Skipping conversion.", e);
             return true;
         }
     }
