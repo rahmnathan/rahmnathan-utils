@@ -1,5 +1,5 @@
 # rahmnathan-utils
-[![Build Status](http://jenkins:8080/buildStatus/icon?job=rahmnathan-utils)](http://jenkins:8080/job/rahmnathan-utils/)
+[![Build Status](https://jenkins.nathanrahm.com/buildStatus/icon?job=rahmnathan-utils)](https://jenkins.nathanrahm.com/job/rahmnathan-utils/)
 Generic utilities used in various applications of mine.
 
 <b>Directory Monitor</b>  
