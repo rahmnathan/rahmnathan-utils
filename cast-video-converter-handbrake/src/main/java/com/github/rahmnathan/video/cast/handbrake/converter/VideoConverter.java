@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 public class VideoConverter {
     private final Logger logger = LoggerFactory.getLogger(VideoConverter.class.getName());
+    private static final String CORRELATION_ID_HEADER = "x-correlation-id";
 
     public void convertMedia(SimpleConversionJob conversionJob) throws VideoConversionException {
         ProcessBuilder builder = new ProcessBuilder();
@@ -24,7 +25,7 @@ public class VideoConverter {
 
         try {
             Process process = builder.start();
-            CompletableFuture.runAsync(new StreamConsumer(process.getInputStream(), conversionJob.getOutputFile().getPath(), logger::info));
+            CompletableFuture.runAsync(new StreamConsumer(process.getInputStream(), MDC.get(CORRELATION_ID_HEADER), logger::info));
             if(process.waitFor() == 0){
                 logger.info("Video conversion successful. Removing input file.");
                 conversionJob.getInputFile().delete();
@@ -40,17 +41,17 @@ public class VideoConverter {
         private final Pattern pattern = Pattern.compile("\\d?\\d(?=.\\d\\d %)");
         private Consumer<String> consumer;
         private InputStream inputStream;
-        private String path;
+        private String correlationId;
 
-        private StreamConsumer(InputStream inputStream, String path, Consumer<String> consumer) {
+        private StreamConsumer(InputStream inputStream, String correlationId, Consumer<String> consumer) {
             this.inputStream = inputStream;
             this.consumer = consumer;
-            this.path = path;
+            this.correlationId = correlationId;
         }
 
         @Override
         public void run() {
-            MDC.put("Output-File", path);
+            MDC.put(CORRELATION_ID_HEADER, correlationId);
             Set<String> set = new HashSet<>();
             new BufferedReader(new InputStreamReader(inputStream)).lines()
                     .filter(s -> {
