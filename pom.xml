@@ -15,8 +15,8 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com/rahmnathan/rahmnathan-utils.git</connection>
-        <developerConnection>scm:git:git@github.com/rahmnathan/rahmnathan-utils.git</developerConnection>
+        <connection>scm:git:git@github.com:rahmnathan/rahmnathan-utils.git</connection>
+        <developerConnection>scm:git:git@github.com:rahmnathan/rahmnathan-utils.git</developerConnection>
     </scm>
 
     <modules>
