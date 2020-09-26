@@ -40,7 +40,6 @@ node {
     }
     stage('Package') {
         rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
-        sh "'${mvnHome}/bin/mvn' clean install -DskipTests"
     }
     stage('Test') {
         sh "'${mvnHome}/bin/mvn' test"
