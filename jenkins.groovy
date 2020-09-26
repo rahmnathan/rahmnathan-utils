@@ -16,7 +16,6 @@ node {
         rtMaven.tool = 'Maven'
         rtMaven.deployer releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
         rtMaven.resolver releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
-        rtMaven.deployer.deployArtifacts = true
 
         buildInfo = Artifactory.newBuildInfo()
     }
@@ -41,9 +40,13 @@ node {
         }
     }
     stage('Package') {
+        rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
         sh "'${mvnHome}/bin/mvn' clean install -DskipTests"
     }
     stage('Test') {
         sh "'${mvnHome}/bin/mvn' test"
+    }
+    stage ('Publish build info') {
+        server.publishBuildInfo buildInfo
     }
 }
