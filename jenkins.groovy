@@ -1,10 +1,24 @@
 node {
     def mvnHome
     def jdk
+    def server
+    def buildInfo
+    def rtMaven
+
     stage('Setup') {
         mvnHome = tool 'Maven'
         jdk = tool name: 'Java 11'
         env.JAVA_HOME = "${jdk}"
+
+        server = Artifactory.server 'Artifactory'
+
+        rtMaven = Artifactory.newMavenBuild()
+        rtMaven.tool = 'Maven'
+        rtMaven.deployer releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
+        rtMaven.resolver releaseRepo: 'rahmnathan-libraries', snapshotRepo: 'rahmnathan-libraries', server: server
+        rtMaven.deployer.deployArtifacts = true
+
+        buildInfo = Artifactory.newBuildInfo()
     }
     stage('Checkout') {
         git 'https://github.com/rahmnathan/rahmnathan-utils.git'
