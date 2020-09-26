@@ -38,11 +38,11 @@ node {
             sh "'${mvnHome}/bin/mvn' -Dtag=${NEW_VERSION} scm:tag"
         }
     }
-    stage('Package') {
-        rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
-    }
     stage('Test') {
         sh "'${mvnHome}/bin/mvn' test"
+    }
+    stage('Package & Deploy') {
+        rtMaven.run pom: 'pom.xml', goals: 'clean install -DskipTests', buildInfo: buildInfo
     }
     stage ('Publish build info') {
         server.publishBuildInfo buildInfo
