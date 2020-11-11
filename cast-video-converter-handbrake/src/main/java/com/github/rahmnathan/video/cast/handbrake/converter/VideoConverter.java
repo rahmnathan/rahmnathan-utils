@@ -30,6 +30,7 @@ public class VideoConverter {
                 logger.info("Video conversion successful. Removing input file.");
                 conversionJob.getInputFile().delete();
             } else {
+                withMdc(new StreamConsumer(process.getErrorStream(), logger::error)).run();
                 throw new VideoConversionException("Failure converting video: " + conversionJob.toString());
             }
         } catch (IOException | InterruptedException e){
