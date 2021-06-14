@@ -51,9 +51,9 @@ class VideoConverterUtils {
                 .overrideOutputFiles(true)
                 .addOutput(conversionJob.getOutputFile().getAbsolutePath());
 
-        Set<ContainerFormat> containerFormats = conversionJob.getContainerFormats();
-        if(containerFormats != null && containerFormats.size() != 0){
-            outputBuilder.setFormat(containerFormats.iterator().next().getFfmpegName());
+        ContainerFormat containerFormats = conversionJob.getContainerFormat();
+        if(containerFormats != null){
+            outputBuilder.setFormat(containerFormats.getFfmpegName());
         }
 
         AudioCodec audioCodec = conversionJob.getAudioCodec();
