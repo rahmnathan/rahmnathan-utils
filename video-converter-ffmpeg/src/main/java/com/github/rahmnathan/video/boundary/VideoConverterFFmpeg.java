@@ -45,6 +45,11 @@ public class VideoConverterFFmpeg implements VideoConverter {
         boolean correctVideoCodec = !simpleConversionJob.hasVideoCodec();
         boolean correctAudioCodec = !simpleConversionJob.hasAudioCodec();
         boolean correctFormat = !simpleConversionJob.hasContainerFormat();
+        boolean correctVideoHeight = simpleConversionJob.getVideoHeight() == null;
+        boolean correctVideoWidth = simpleConversionJob.getVideoWidth() == null;
+        boolean correctVideoBitrate = simpleConversionJob.getVideoBitrate() == null;
+        boolean correctAudioBitrate = simpleConversionJob.getAudioBitrate() == null;
+        boolean correctFrameRate = simpleConversionJob.getFrameRate() == null;
 
         try {
             FFmpegProbeResult probeResult = simpleConversionJob.getFfprobe()
@@ -62,15 +67,35 @@ public class VideoConverterFFmpeg implements VideoConverter {
                 String codecName = stream.codec_name;
                 logger.info("Stream codec - {}", codecName);
 
-                if (codecName.toLowerCase().contains(simpleConversionJob.getAudioCodec().name().toLowerCase()))
+                if (codecName.toLowerCase().contains(simpleConversionJob.getAudioCodec().name().toLowerCase())){
                     correctAudioCodec = true;
-                else if (codecName.toLowerCase().contains(simpleConversionJob.getVideoCodec().name().toLowerCase()))
+
+                    if(stream.bit_rate <= simpleConversionJob.getAudioBitrate()){
+                        correctAudioBitrate = true;
+                    }
+                }
+                else if (codecName.toLowerCase().contains(simpleConversionJob.getVideoCodec().name().toLowerCase())) {
                     correctVideoCodec = true;
+
+                    if(stream.bit_rate <= simpleConversionJob.getVideoBitrate()){
+                        correctVideoBitrate = true;
+                    }
+                    if(stream.avg_frame_rate.doubleValue() <= simpleConversionJob.getFrameRate()){
+                        correctFrameRate = true;
+                    }
+                    if(stream.width <= simpleConversionJob.getVideoWidth()) {
+                        correctVideoWidth = true;
+                    }
+                    if(stream.height <= simpleConversionJob.getVideoHeight()) {
+                        correctVideoHeight = true;
+                    }
+                }
             }
         } catch (IOException e) {
             logger.error("Failed to determine video format", e);
         }
 
-        return correctVideoCodec && correctAudioCodec && correctFormat;
+        return correctVideoCodec && correctAudioCodec && correctFormat && correctAudioBitrate && correctVideoBitrate &&
+                correctVideoHeight && correctVideoWidth && correctFrameRate;
     }
 }
