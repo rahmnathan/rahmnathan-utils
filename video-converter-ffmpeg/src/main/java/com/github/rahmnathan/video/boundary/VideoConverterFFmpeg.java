@@ -29,7 +29,7 @@ public class VideoConverterFFmpeg implements VideoConverter {
         String outputFilePath = simpleConversionJob.getOutputFile().getAbsolutePath();
         activeConversions.add(outputFilePath);
 
-        boolean correctFormat = isCorrectFormat(simpleConversionJob);
+        boolean correctFormat = !simpleConversionJob.isForceConvert() && isCorrectFormat(simpleConversionJob);
         logger.info("Correct format? - {}", correctFormat);
         if (!correctFormat) {
             videoController.convertMedia(simpleConversionJob);

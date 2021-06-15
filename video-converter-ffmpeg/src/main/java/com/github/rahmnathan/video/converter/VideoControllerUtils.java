@@ -53,6 +53,31 @@ class VideoControllerUtils {
             outputBuilder.setVideoCodec(videoCodec.getEncoder());
         }
 
+        Integer videoWidth = conversionJob.getVideoWidth();
+        if(videoWidth != null){
+            outputBuilder.setVideoWidth(videoWidth);
+        }
+
+        Integer videoHeight = conversionJob.getVideoHeight();
+        if(videoHeight != null) {
+            outputBuilder.setVideoHeight(videoHeight);
+        }
+
+        Long audioBitrate = conversionJob.getAudioBitrate();
+        if(audioBitrate != null) {
+            outputBuilder.setAudioBitRate(audioBitrate);
+        }
+
+        Long videoBitrate = conversionJob.getVideoBitrate();
+        if(videoBitrate != null) {
+            outputBuilder.setVideoBitRate(videoBitrate);
+        }
+
+        Double frameRate = conversionJob.getFrameRate();
+        if(frameRate != null) {
+            outputBuilder.setVideoFrameRate(frameRate);
+        }
+
         return outputBuilder.done();
     }
 

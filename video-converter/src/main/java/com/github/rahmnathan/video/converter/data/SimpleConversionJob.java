@@ -14,6 +14,12 @@ public class SimpleConversionJob {
     private final ContainerFormat containerFormat;
     private final AudioCodec audioCodec;
     private final VideoCodec videoCodec;
+    private final Long audioBitrate;
+    private final Long videoBitrate;
+    private final Integer videoHeight;
+    private final Integer videoWidth;
+    private final Double frameRate;
+    private final boolean forceConvert;
     @NonNull private final FFprobe ffprobe;
     @NonNull private final File outputFile;
     @NonNull private final File inputFile;
