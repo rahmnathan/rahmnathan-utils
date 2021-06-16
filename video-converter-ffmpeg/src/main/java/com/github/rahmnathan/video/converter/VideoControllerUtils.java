@@ -27,8 +27,10 @@ class VideoControllerUtils {
 
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
-            int percentage = Double.valueOf((progress.out_time_ns / duration) / 10000000).intValue();
-            log.info("{} Encoding progress -> {}%", existingFilePath, percentage);
+            double percentComplete = Double.valueOf((progress.out_time_ns / duration) / 10000000);
+            if(percentComplete % 1 == 0){
+                log.info("{} Encoding progress -> {}%", existingFilePath, percentComplete);
+            }
         });
     }
 
