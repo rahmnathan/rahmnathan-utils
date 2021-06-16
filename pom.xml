@@ -24,6 +24,7 @@
         <module>directory-monitor</module>
         <module>video-converter</module>
         <module>video-converter-ffmpeg</module>
+        <module>video-converter-handbrake</module>
     </modules>
 
     <dependencies>
