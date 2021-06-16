@@ -4,17 +4,20 @@ import com.github.rahmnathan.video.ffprobe.FFProbeService;
 import com.github.rahmnathan.video.ffmpeg.FFmpegService;
 import com.github.rahmnathan.video.converter.boundary.VideoConverter;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
+import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class VideoConverterFFmpeg implements VideoConverter {
+    private final AtomicInteger activeConversionsGauge = Metrics.gauge("ffmpeg.conversions.active", new AtomicInteger(0));
+    private final FFProbeService ffProbeService = new FFProbeService();
+    private final FFmpegService ffmpegService = new FFmpegService();
     private final SimpleConversionJob simpleConversionJob;
     private final Set<String> activeConversions;
-    private final FFmpegService ffmpegService = new FFmpegService();
-    private final FFProbeService ffProbeService = new FFProbeService();
 
     public VideoConverterFFmpeg(SimpleConversionJob simpleConversionJob, Set<String> activeConversions) {
         this.simpleConversionJob = simpleConversionJob;
@@ -30,7 +33,9 @@ public class VideoConverterFFmpeg implements VideoConverter {
         boolean correctFormat = !simpleConversionJob.isForceConvert() && ffProbeService.isCorrectFormat(simpleConversionJob);
         log.info("Correct format? - {}", correctFormat);
         if (!correctFormat) {
+            activeConversionsGauge.getAndIncrement();
             ffmpegService.convertMedia(simpleConversionJob);
+            activeConversionsGauge.getAndDecrement();
         }
 
         activeConversions.remove(outputFilePath);
