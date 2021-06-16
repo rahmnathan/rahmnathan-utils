@@ -1,4 +1,4 @@
-package com.github.rahmnathan.video.converter;
+package com.github.rahmnathan.video.ffmpeg;
 
 import com.github.rahmnathan.video.converter.data.AudioCodec;
 import com.github.rahmnathan.video.converter.data.ContainerFormat;
@@ -16,7 +16,7 @@ import java.io.IOException;
 
 @Slf4j
 @UtilityClass
-class VideoControllerUtils {
+class FFmpegUtils {
 
     static FFmpegJob buildFFmpegJob(SimpleConversionJob conversionJob) throws IOException {
         String existingFilePath = conversionJob.getInputFile().getAbsolutePath();
@@ -27,9 +27,9 @@ class VideoControllerUtils {
 
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
-            double percentComplete = Double.valueOf((progress.out_time_ns / duration) / 10000000);
+            double percentComplete = (progress.out_time_ns / duration) / 10000000;
             if(percentComplete % 1 == 0){
-                log.info("{} Encoding progress -> {}%", existingFilePath, percentComplete);
+                log.info("{} Encoding progress -> {}%", existingFilePath, Double.valueOf(percentComplete).intValue());
             }
         });
     }

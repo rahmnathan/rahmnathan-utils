@@ -1,4 +1,4 @@
-package com.github.rahmnathan.video.converter;
+package com.github.rahmnathan.video.ffmpeg;
 
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import net.bramp.ffmpeg.FFmpeg;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class VideoControllerUtilsTest {
+public class FFmpegUtilsTest {
     private static SimpleConversionJob conversionJob;
 
     @BeforeAll
@@ -32,11 +32,11 @@ public class VideoControllerUtilsTest {
         FFmpegJob job = mock(FFmpegJob.class);
         when(job.getState()).thenReturn(FFmpegJob.State.FINISHED);
 
-        assertEquals(FFmpegJob.State.FINISHED, VideoControllerUtils.waitForResult(job));
+        assertEquals(FFmpegJob.State.FINISHED, FFmpegUtils.waitForResult(job));
     }
 
     @Test
     public void createBuilderTest(){
-        Validate.notNull(VideoControllerUtils.createBuilder(conversionJob));
+        Validate.notNull(FFmpegUtils.createBuilder(conversionJob));
     }
 }
