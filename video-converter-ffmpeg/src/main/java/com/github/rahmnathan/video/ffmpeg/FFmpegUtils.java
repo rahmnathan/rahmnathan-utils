@@ -13,6 +13,8 @@ import net.bramp.ffmpeg.job.FFmpegJob;
 import net.bramp.ffmpeg.probe.FFmpegProbeResult;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Slf4j
 @UtilityClass
@@ -28,6 +30,11 @@ class FFmpegUtils {
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
             double percentComplete = (progress.out_time_ns / duration) / 10000000;
+
+            percentComplete = BigDecimal.valueOf(percentComplete)
+                    .setScale(2, RoundingMode.HALF_UP)
+                    .doubleValue();
+
             if(percentComplete % 1 == 0){
                 log.info("{} Encoding progress -> {}%", existingFilePath, Double.valueOf(percentComplete).intValue());
             }
