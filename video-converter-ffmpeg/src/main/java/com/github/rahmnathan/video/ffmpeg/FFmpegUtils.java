@@ -30,12 +30,7 @@ class FFmpegUtils {
         return ffmpegExecutor.createJob(fFmpegBuilder, progress -> {
             double duration = ffmpegProbeResult.getFormat().duration;
             double percentComplete = (progress.out_time_ns / duration) / 10000000;
-
-            percentComplete = BigDecimal.valueOf(percentComplete)
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .doubleValue();
-
-            if(percentComplete % 1 == 0){
+            if(percentComplete % 1 < .5) {
                 log.info("{} Encoding progress -> {}%", existingFilePath, Double.valueOf(percentComplete).intValue());
             }
         });
