@@ -7,7 +7,7 @@ node {
 
     stage('Setup') {
         mvnHome = tool 'Maven'
-        jdk = tool name: 'Java 11'
+        jdk = tool name: 'Java 17'
         env.JAVA_HOME = "${jdk}"
 
         server = Artifactory.server 'Artifactory'

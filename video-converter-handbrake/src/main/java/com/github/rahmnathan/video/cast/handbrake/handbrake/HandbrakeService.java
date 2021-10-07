@@ -49,8 +49,8 @@ public class HandbrakeService {
 
     private static class StreamConsumer implements Runnable {
         private final Pattern pattern = Pattern.compile("\\d?\\d(?=.\\d\\d %)");
-        private Consumer<String> consumer;
-        private InputStream inputStream;
+        private final Consumer<String> consumer;
+        private final InputStream inputStream;
 
         private StreamConsumer(InputStream inputStream, Consumer<String> consumer) {
             this.inputStream = inputStream;
