@@ -20,7 +20,7 @@ public class HandbrakeService {
     public void convertMedia(SimpleConversionJob conversionJob) throws VideoConverterException {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command("HandBrakeCLI",
-                "-Z", "Chromecast 1080p30 Surround",
+                "-Z", "Chromecast 2160p60 4K HEVC Surround",
                 "-i", conversionJob.getInputFile().getAbsolutePath(),
                 "-o", conversionJob.getOutputFile().getAbsolutePath());
 
