@@ -20,6 +20,7 @@ public class SimpleConversionJob {
     private final Integer videoWidth;
     private final Double frameRate;
     private final boolean forceConvert;
+    private final String handbrakePreset;
     @NonNull private final FFprobe ffprobe;
     @NonNull private final File outputFile;
     @NonNull private final File inputFile;
