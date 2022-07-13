@@ -3,6 +3,7 @@ package com.github.rahmnathan.video.cast.handbrake.handbrake;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.util.Config;
@@ -24,6 +25,8 @@ public class HandbrakeServiceKubernetes {
     public void convertMedia(SimpleConversionJob conversionJob) throws IOException, ApiException {
         ApiClient client = Config.defaultClient();
         CoreV1Api api = new CoreV1Api(client);
+
+        Configuration.setDefaultApiClient(client);
 
         V1Pod v1Pod = new V1Pod();
 
