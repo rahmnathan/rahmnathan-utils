@@ -25,6 +25,7 @@
         <module>video-converter</module>
         <module>video-converter-ffmpeg</module>
         <module>video-converter-handbrake</module>
+        <module>video-converter-handbrake-kubernetes</module>
     </modules>
 
     <dependencies>
