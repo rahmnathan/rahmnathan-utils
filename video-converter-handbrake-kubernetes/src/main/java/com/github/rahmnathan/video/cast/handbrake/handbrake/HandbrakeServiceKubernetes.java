@@ -31,6 +31,7 @@ public class HandbrakeServiceKubernetes {
         V1Pod v1Pod = new V1Pod();
 
         V1PodSpec podSpec = new V1PodSpec();
+        v1Pod.setSpec(podSpec);
         String podName = "handbrake-" + UUID.randomUUID();
         V1ObjectMeta objectMeta = new V1ObjectMeta();
         objectMeta.name(podName);
@@ -54,12 +55,12 @@ public class HandbrakeServiceKubernetes {
                 .filter(v1VolumeMount -> v1VolumeMount.getName().startsWith("media"))
                 .collect(Collectors.toList());
 
-        List<V1VolumeDevice> devices = localmoviesContainer.getVolumeDevices().stream()
-                .filter(v1VolumeDevice -> v1VolumeDevice.getName().startsWith("media"))
-                .collect(Collectors.toList());
+//        List<V1VolumeDevice> devices = localmoviesContainer.getVolumeDevices().stream()
+//                .filter(v1VolumeDevice -> v1VolumeDevice.getName().startsWith("media"))
+//                .collect(Collectors.toList());
 
         ffmpegContainer.setVolumeMounts(volumeMounts);
-        ffmpegContainer.setVolumeDevices(devices);
+//        ffmpegContainer.setVolumeDevices(devices);
 
         List<String> args = List.of("-Z", conversionJob.getHandbrakePreset(),
                 "-i", conversionJob.getInputFile().getAbsolutePath(),
