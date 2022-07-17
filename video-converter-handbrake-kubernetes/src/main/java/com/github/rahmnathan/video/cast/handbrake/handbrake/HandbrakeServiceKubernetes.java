@@ -1,84 +1,84 @@
 package com.github.rahmnathan.video.cast.handbrake.handbrake;
 
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.openapi.Configuration;
-import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.models.*;
-import io.kubernetes.client.util.Config;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @AllArgsConstructor
 public class HandbrakeServiceKubernetes {
 
-    public void convertMedia(SimpleConversionJob conversionJob) throws IOException, ApiException {
-        ApiClient client = Config.defaultClient();
-        CoreV1Api api = new CoreV1Api(client);
+    public void convertMedia(SimpleConversionJob conversionJob) throws IOException {
+        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
 
-        Configuration.setDefaultApiClient(client);
+            if (Files.exists(conversionJob.getOutputFile().toPath())) {
+                Files.delete(conversionJob.getOutputFile().toPath());
+            }
 
-        V1Pod v1Pod = new V1Pod();
+            Optional<Pod> localmoviesPodOptional = client.pods().list().getItems().stream()
+                    .filter(pod -> pod.getMetadata().getLabels().get("app").equalsIgnoreCase("localmovies"))
+                    .findAny();
 
-        V1PodSpec podSpec = new V1PodSpec();
-        v1Pod.setSpec(podSpec);
-        String podName = "handbrake-" + UUID.randomUUID();
-        V1ObjectMeta objectMeta = new V1ObjectMeta();
-        objectMeta.name(podName);
-        v1Pod.metadata(objectMeta);
+            if (localmoviesPodOptional.isEmpty()) {
+                return;
+            }
 
-        V1Container ffmpegContainer = new V1Container();
-        ffmpegContainer.name("handbrake");
-        ffmpegContainer.image("rahmnathan/handbrake:latest");
+            String podName = "handbrake-" + UUID.randomUUID();
 
-        String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+            log.info("Creating job {} to process media conversion.", podName);
 
-        V1Pod localmoviesPod = api.listNamespacedPod(namespace, null, null, null, null, "app=localmovies", 1, null, null, null, null)
-                .getItems()
-                .get(0);
+            List<String> args = List.of("-Z", conversionJob.getHandbrakePreset(),
+                    "-i", conversionJob.getInputFile().getAbsolutePath(),
+                    "-o", conversionJob.getOutputFile().getAbsolutePath());
 
-        V1Container localmoviesContainer = localmoviesPod.getSpec().getContainers().stream()
-                .filter(container -> "localmovies".equalsIgnoreCase(container.getName()))
-                .toList().get(0);
+            List<Volume> volumes = localmoviesPodOptional.get().getSpec().getVolumes().stream()
+                    .filter(volume -> volume.getName().startsWith("media"))
+                    .toList();
 
-        List<V1VolumeMount> volumeMounts = localmoviesContainer.getVolumeMounts().stream()
-                .filter(v1VolumeMount -> v1VolumeMount.getName().startsWith("media"))
-                .collect(Collectors.toList());
+            String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
-//        List<V1VolumeDevice> devices = localmoviesContainer.getVolumeDevices().stream()
-//                .filter(v1VolumeDevice -> v1VolumeDevice.getName().startsWith("media"))
-//                .collect(Collectors.toList());
+            final Job job = new JobBuilder()
+                    .withApiVersion("batch/v1")
+                    .withNewMetadata()
+                    .withName(podName)
+                    .endMetadata()
+                    .withNewSpec()
+                    .withNewTemplate()
+                    .withNewSpec()
+                    .addNewContainer()
+                    .withName(podName)
+                    .withImage("rahmnathan/handbrake:latest")
+                    .withArgs(args)
+                    .endContainer()
+                    .withVolumes(volumes)
+                    .withRestartPolicy("Never")
+                    .endSpec()
+                    .endTemplate()
+                    .endSpec()
+                    .build();
 
-        ffmpegContainer.setVolumeMounts(volumeMounts);
-//        ffmpegContainer.setVolumeDevices(devices);
+            Job runningJob = client.batch().v1().jobs().inNamespace(namespace).createOrReplace(job);
 
-        List<String> args = List.of("-Z", conversionJob.getHandbrakePreset(),
-                "-i", conversionJob.getInputFile().getAbsolutePath(),
-                "-o", conversionJob.getOutputFile().getAbsolutePath());
+            log.info("Created job successfully.");
 
-        ffmpegContainer.command(args);
-
-        podSpec.setContainers(List.of(ffmpegContainer));
-
-        V1Pod v1Pod1 = api.createNamespacedPod(namespace, v1Pod, podName, null, null, null);
-
-        while(true) {
-            String logs = api.readNamespacedPodLog(podName, namespace, null, null, Boolean.TRUE, null, null, null, null, null, null);
-
-            log.info(logs);
-
-            v1Pod1 = api.readNamespacedPodStatus(podName, namespace, null);
-            log.info(Objects.requireNonNull(v1Pod1.getStatus()).toString());
+            while (runningJob.getStatus().getSucceeded() < 1) {
+                log.info("Waiting for conversion to complete.");
+                Thread.sleep(30000);
+                runningJob = client.batch().v1().jobs().inNamespace(namespace).createOrReplace(job);
+            }
+        } catch (InterruptedException e) {
+            log.error("Error in job library.", e);
         }
     }
 }

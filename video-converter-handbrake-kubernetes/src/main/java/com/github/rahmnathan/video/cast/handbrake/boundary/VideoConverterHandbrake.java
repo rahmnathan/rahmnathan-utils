@@ -3,7 +3,6 @@ package com.github.rahmnathan.video.cast.handbrake.boundary;
 import com.github.rahmnathan.video.cast.handbrake.handbrake.HandbrakeServiceKubernetes;
 import com.github.rahmnathan.video.converter.boundary.VideoConverter;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import io.kubernetes.client.openapi.ApiException;
 import io.micrometer.core.instrument.Metrics;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,7 @@ public class VideoConverterHandbrake implements VideoConverter {
         try {
             handbrakeService.convertMedia(simpleConversionJob);
             activeConversions.remove(resultPath);
-        } catch (IOException | ApiException e) {
+        } catch (IOException e) {
             log.error("Failure converting video", e);
             activeConversions.remove(resultPath);
             resultPath = inputFile.getAbsolutePath();
