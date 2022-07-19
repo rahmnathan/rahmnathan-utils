@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class HandbrakeServiceKubernetes {
 
     public void convertMedia(SimpleConversionJob conversionJob) throws IOException {
-        try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+        try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
 
             if (Files.exists(conversionJob.getOutputFile().toPath())) {
                 Files.delete(conversionJob.getOutputFile().toPath());
