@@ -1,9 +1,7 @@
 package com.github.rahmnathan.video.cast.handbrake.handbrake;
 
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -59,6 +57,13 @@ public class HandbrakeServiceKubernetes {
 
             String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
+            ResourceRequirements resources = new ResourceRequirements(
+                    Map.of("cpu", Quantity.parse("4"),
+                           "memory", Quantity.parse("4Gi")),
+                    Map.of("cpu", Quantity.parse("8"),
+                           "memory", Quantity.parse("8Gi"))
+            );
+
             final Job job = new JobBuilder()
                     .withApiVersion("batch/v1")
                     .withNewMetadata()
@@ -72,6 +77,7 @@ public class HandbrakeServiceKubernetes {
                     .withImage("rahmnathan/handbrake:latest")
                     .withArgs(args)
                     .withVolumeMounts(volumeMounts)
+                    .withResources(resources)
                     .endContainer()
                     .withVolumes(volumes)
                     .withRestartPolicy("Never")
