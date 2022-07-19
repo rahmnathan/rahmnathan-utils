@@ -94,13 +94,13 @@ public class HandbrakeServiceKubernetes {
                     .endSpec()
                     .build();
 
-            client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
+            Job launchedJob = client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
 
             log.info("Created job successfully.");
 
             CompletableFuture.runAsync(withMdc(new StreamConsumer(client.batch().v1().jobs().inNamespace(namespace).resource(job).getLogInputStream(), log::info)));
 
-            client.batch().v1().jobs().inNamespace(namespace).waitUntilCondition(job1 ->
+            client.batch().v1().jobs().inNamespace(namespace).resource(launchedJob).waitUntilCondition(job1 ->
                     job1 != null &&
                             job1.getStatus() != null &&
                             job1.getStatus().getSucceeded() != null &&
