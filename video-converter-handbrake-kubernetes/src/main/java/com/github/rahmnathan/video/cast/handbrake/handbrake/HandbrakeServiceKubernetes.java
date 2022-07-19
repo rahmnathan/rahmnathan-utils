@@ -3,6 +3,7 @@ package com.github.rahmnathan.video.cast.handbrake.handbrake;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -48,6 +49,14 @@ public class HandbrakeServiceKubernetes {
                     .filter(volume -> volume.getName().startsWith("media"))
                     .toList();
 
+            List<VolumeMount> volumeMounts = localmoviesPodOptional.get().getSpec().getContainers().stream()
+                    .filter(container -> "localmovies".equalsIgnoreCase(container.getName()))
+                    .findAny()
+                    .get()
+                    .getVolumeMounts().stream()
+                    .filter(volumeMount -> volumeMount.getName().startsWith("media"))
+                    .toList();
+
             String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
             final Job job = new JobBuilder()
@@ -62,6 +71,7 @@ public class HandbrakeServiceKubernetes {
                     .withName(podName)
                     .withImage("rahmnathan/handbrake:latest")
                     .withArgs(args)
+                    .withVolumeMounts(volumeMounts)
                     .endContainer()
                     .withVolumes(volumes)
                     .withRestartPolicy("Never")
