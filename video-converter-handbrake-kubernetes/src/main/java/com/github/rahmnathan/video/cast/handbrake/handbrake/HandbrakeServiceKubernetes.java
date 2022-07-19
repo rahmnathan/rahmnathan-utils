@@ -9,12 +9,20 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @AllArgsConstructor
@@ -90,12 +98,50 @@ public class HandbrakeServiceKubernetes {
 
             log.info("Created job successfully.");
 
-            client.batch().v1().jobs().inNamespace(namespace).waitUntilCondition(job1 -> {
-                Integer succeeded = job1.getStatus().getSucceeded();
-                return succeeded != null && succeeded > 0;
-            }, 6, TimeUnit.HOURS);
+            CompletableFuture.runAsync(withMdc(new StreamConsumer(client.batch().v1().jobs().inNamespace(namespace).resource(job).getLogInputStream(), log::info)));
+
+            client.batch().v1().jobs().inNamespace(namespace).waitUntilCondition(job1 ->
+                    job1 != null &&
+                            job1.getStatus() != null &&
+                            job1.getStatus().getSucceeded() != null &&
+                            job1.getStatus().getSucceeded() > 0, 6, TimeUnit.HOURS);
+
 
             log.info("Job completed.");
+        }
+    }
+
+    private static Runnable withMdc(Runnable runnable) {
+        Map<String, String> mdc = MDC.getCopyOfContextMap();
+        return () -> {
+            MDC.setContextMap(mdc);
+            runnable.run();
+        };
+    }
+
+    private static class StreamConsumer implements Runnable {
+        private final Pattern pattern = Pattern.compile("\\d?\\d(?=.\\d\\d %)");
+        private final Consumer<String> consumer;
+        private final InputStream inputStream;
+
+        private StreamConsumer(InputStream inputStream, Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            Set<String> set = new HashSet<>();
+            new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .filter(s -> {
+                        Matcher matcher = pattern.matcher(s);
+                        if (matcher.find()) {
+                            return set.add(matcher.group());
+                        }
+
+                        return true;
+                    })
+                    .forEach(consumer);
         }
     }
 }
