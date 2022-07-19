@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @AllArgsConstructor
@@ -27,7 +28,7 @@ public class HandbrakeServiceKubernetes {
             }
 
             Optional<Pod> localmoviesPodOptional = client.pods().list().getItems().stream()
-                    .filter(pod -> pod.getMetadata().getLabels().get("app").equalsIgnoreCase("localmovies"))
+                    .filter(pod -> "localmovies".equalsIgnoreCase(pod.getMetadata().getLabels().get("app")))
                     .findAny();
 
             if (localmoviesPodOptional.isEmpty()) {
@@ -68,17 +69,16 @@ public class HandbrakeServiceKubernetes {
                     .endSpec()
                     .build();
 
-            Job runningJob = client.batch().v1().jobs().inNamespace(namespace).createOrReplace(job);
+            client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
 
             log.info("Created job successfully.");
 
-            while (runningJob.getStatus().getSucceeded() < 1) {
-                log.info("Waiting for conversion to complete.");
-                Thread.sleep(30000);
-                runningJob = client.batch().v1().jobs().inNamespace(namespace).createOrReplace(job);
-            }
-        } catch (InterruptedException e) {
-            log.error("Error in job library.", e);
+            client.batch().v1().jobs().inNamespace(namespace).waitUntilCondition(job1 -> {
+                Integer succeeded = job1.getStatus().getSucceeded();
+                return succeeded != null && succeeded > 0;
+            }, 6, TimeUnit.HOURS);
+
+            log.info("Job completed.");
         }
     }
 }
