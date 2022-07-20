@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @RequiredArgsConstructor
 public class VideoConverterHandbrake implements VideoConverter {
-    private static final AtomicInteger ACTIVE_CONVERSION_GAUGE = Metrics.gauge("handbrake.conversions.active", new AtomicInteger(0));
     private final HandbrakeServiceKubernetes handbrakeService = new HandbrakeServiceKubernetes();
     private final SimpleConversionJob simpleConversionJob;
     private final Set<String> activeConversions;
@@ -28,7 +27,6 @@ public class VideoConverterHandbrake implements VideoConverter {
         String resultPath = simpleConversionJob.getOutputFile().getAbsolutePath();
 
         activeConversions.add(resultPath);
-        ACTIVE_CONVERSION_GAUGE.getAndIncrement();
 
         try {
             handbrakeService.convertMedia(simpleConversionJob);
@@ -39,7 +37,6 @@ public class VideoConverterHandbrake implements VideoConverter {
             resultPath = inputFile.getAbsolutePath();
         }
 
-        ACTIVE_CONVERSION_GAUGE.getAndDecrement();
         MDC.clear();
 
         return resultPath;
