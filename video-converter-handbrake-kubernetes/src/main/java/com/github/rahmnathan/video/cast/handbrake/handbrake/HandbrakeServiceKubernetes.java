@@ -98,15 +98,20 @@ public class HandbrakeServiceKubernetes {
 
             log.info("Created job successfully.");
 
-            CompletableFuture.runAsync(withMdc(new StreamConsumer(client.batch().v1().jobs().inNamespace(namespace).resource(job).getLogInputStream(), log::info)));
+            client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 ->
+                    job1 != null &&
+                            job1.getStatus() != null &&
+                            job1.getStatus().getReady() > 0, 5, TimeUnit.MINUTES);
 
-            client.batch().v1().jobs().inNamespace(namespace).resource(launchedJob).waitUntilCondition(job1 ->
+            CompletableFuture.runAsync(withMdc(new StreamConsumer(client.batch().v1().jobs().withName(podName).getLogInputStream(), log::info)));
+
+            client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 ->
                     job1 != null &&
                             job1.getStatus() != null &&
                             job1.getStatus().getSucceeded() != null &&
                             job1.getStatus().getSucceeded() > 0, 6, TimeUnit.HOURS);
 
-
+            conversionJob.getInputFile().delete();
             log.info("Job completed.");
         }
     }
