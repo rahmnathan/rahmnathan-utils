@@ -63,7 +63,7 @@ public class HandbrakeServiceKubernetes {
                     .filter(volumeMount -> volumeMount.getName().startsWith("media"))
                     .toList();
 
-            String namespace = "localmovies";
+            String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
             ResourceRequirements resources = new ResourceRequirements(
                     Map.of("cpu", Quantity.parse("8"),
