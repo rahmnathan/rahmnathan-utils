@@ -63,7 +63,7 @@ public class HandbrakeServiceKubernetes {
                     .filter(volumeMount -> volumeMount.getName().startsWith("media"))
                     .toList();
 
-            String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
+            String namespace = "localmovies";
 
             ResourceRequirements resources = new ResourceRequirements(
                     Map.of("cpu", Quantity.parse("8"),
@@ -101,6 +101,7 @@ public class HandbrakeServiceKubernetes {
             client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 ->
                     job1 != null &&
                             job1.getStatus() != null &&
+                            job1.getStatus().getReady() != null &&
                             job1.getStatus().getReady() > 0, 5, TimeUnit.MINUTES);
 
             CompletableFuture.runAsync(withMdc(new StreamConsumer(client.batch().v1().jobs().withName(podName).getLogInputStream(), log::info)));
