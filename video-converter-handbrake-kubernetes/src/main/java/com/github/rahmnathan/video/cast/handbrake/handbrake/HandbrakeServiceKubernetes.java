@@ -63,7 +63,7 @@ public class HandbrakeServiceKubernetes {
 
             ResourceRequirements resources = new ResourceRequirements(
                     Map.of("cpu", Quantity.parse("6"),
-                           "memory", Quantity.parse("6Gi")),
+                           "memory", Quantity.parse("4Gi")),
                     Map.of("cpu", Quantity.parse("2"),
                            "memory", Quantity.parse("2Gi"))
             );
@@ -71,22 +71,22 @@ public class HandbrakeServiceKubernetes {
             final Job job = new JobBuilder()
                     .withApiVersion("batch/v1")
                     .withNewMetadata()
-                    .withName(podName)
+                        .withName(podName)
                     .endMetadata()
                     .withNewSpec()
-                    .withNewTemplate()
-                    .withNewSpec()
-                    .addNewContainer()
-                    .withName(podName)
-                    .withImage("rahmnathan/handbrake:latest")
-                    .withArgs(args)
-                    .withVolumeMounts(volumeMounts)
-                    .withResources(resources)
-                    .endContainer()
-                    .withVolumes(volumes)
-                    .withRestartPolicy("Never")
-                    .endSpec()
-                    .endTemplate()
+                        .withNewTemplate()
+                            .withNewSpec()
+                                .addNewContainer()
+                                    .withName(podName)
+                                    .withImage("rahmnathan/handbrake:latest")
+                                    .withArgs(args)
+                                    .withVolumeMounts(volumeMounts)
+                                    .withResources(resources)
+                                .endContainer()
+                                .withVolumes(volumes)
+                                .withRestartPolicy("Never")
+                            .endSpec()
+                        .endTemplate()
                     .endSpec()
                     .build();
 
@@ -103,11 +103,13 @@ public class HandbrakeServiceKubernetes {
             ACTIVE_CONVERSION_GAUGE.getAndIncrement();
 
             try {
-                client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 ->
-                        job1 != null &&
+                client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 -> {
+                    log.info("Job Status: {}", job1);
+                        return job1 != null &&
                                 job1.getStatus() != null &&
                                 job1.getStatus().getSucceeded() != null &&
-                                job1.getStatus().getSucceeded() > 0, 12, TimeUnit.HOURS);
+                                job1.getStatus().getSucceeded() > 0;
+                        }, 12, TimeUnit.HOURS);
 
                 conversionJob.getInputFile().delete();
             } finally {
