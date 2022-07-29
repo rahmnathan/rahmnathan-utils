@@ -4,6 +4,7 @@ import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
@@ -68,7 +69,7 @@ public class HandbrakeServiceKubernetes {
                            "memory", Quantity.parse("2Gi"))
             );
 
-            final Job job = new JobBuilder()
+            Job job = new JobBuilder()
                     .withApiVersion("batch/v1")
                     .withNewMetadata()
                         .withName(podName)
@@ -90,7 +91,7 @@ public class HandbrakeServiceKubernetes {
                     .endSpec()
                     .build();
 
-            Job launchedJob = client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
+            client.batch().v1().jobs().inNamespace(namespace).resource(job).createOrReplace();
 
             log.info("Created job successfully.");
 
@@ -103,15 +104,25 @@ public class HandbrakeServiceKubernetes {
             ACTIVE_CONVERSION_GAUGE.getAndIncrement();
 
             try {
-                client.batch().v1().jobs().inNamespace(namespace).withName(podName).waitUntilCondition(job1 -> {
-                    log.info("Job Status: {}", job1);
-                        return job1 != null &&
-                                job1.getStatus() != null &&
-                                job1.getStatus().getSucceeded() != null &&
-                                job1.getStatus().getSucceeded() > 0;
-                        }, 12, TimeUnit.HOURS);
+                while(true) {
+                    Thread.sleep(60000);
+                    job = client.batch().v1().jobs().inNamespace(namespace).withName(podName).get();
+                    if(job != null &&
+                            job.getStatus() != null &&
+                            job.getStatus().getSucceeded() != null &&
+                            job.getStatus().getSucceeded() > 0) {
+                        break;
+                    } else {
+                        log.info("Waiting for job to complete.");
+                        if(job != null) {
+                            log.info("JobStatus: {}", job.getStatus());
+                        }
+                    }
+                }
 
                 conversionJob.getInputFile().delete();
+            } catch (InterruptedException e){
+                log.error("Interrupted.", e);
             } finally {
                 ACTIVE_CONVERSION_GAUGE.getAndDecrement();
             }
