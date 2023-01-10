@@ -6,7 +6,7 @@
 
     <groupId>com.github.rahmnathan.utils</groupId>
     <artifactId>rahmnathan-utils</artifactId>
-    <version>2</version>
+    <version>3</version>
     <packaging>pom</packaging>
 
     <properties>
