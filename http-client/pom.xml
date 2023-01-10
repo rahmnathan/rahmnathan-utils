@@ -5,7 +5,7 @@
     <parent>
         <artifactId>rahmnathan-utils</artifactId>
         <groupId>com.github.rahmnathan.utils</groupId>
-        <version>2</version>
+        <version>3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
