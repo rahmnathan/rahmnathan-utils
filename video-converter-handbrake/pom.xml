@@ -15,7 +15,7 @@
         <dependency>
             <groupId>com.github.rahmnathan.utils</groupId>
             <artifactId>video-converter</artifactId>
-            <version>2</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 </project>
