@@ -4,7 +4,6 @@ import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
@@ -64,7 +63,7 @@ public class HandbrakeServiceKubernetes {
 
             ResourceRequirements resources = new ResourceRequirements(
                     Map.of("cpu", Quantity.parse("6"),
-                           "memory", Quantity.parse("4Gi")),
+                           "memory", Quantity.parse("6Gi")),
                     Map.of("cpu", Quantity.parse("2"),
                            "memory", Quantity.parse("2Gi"))
             );
@@ -73,6 +72,9 @@ public class HandbrakeServiceKubernetes {
                     .withApiVersion("batch/v1")
                     .withNewMetadata()
                         .withName(podName)
+                        .withLabels(Map.of("app", "handbrake",
+                                           "inputPath", conversionJob.getInputFile().getAbsolutePath(),
+                                           "outputPath", conversionJob.getOutputFile().getAbsolutePath()))
                     .endMetadata()
                     .withNewSpec()
                         .withNewTemplate()
