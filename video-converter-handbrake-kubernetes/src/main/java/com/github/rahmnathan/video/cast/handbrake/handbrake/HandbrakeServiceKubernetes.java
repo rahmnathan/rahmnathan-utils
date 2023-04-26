@@ -71,8 +71,7 @@ public class HandbrakeServiceKubernetes {
                     .withNewMetadata()
                         .withName(podName)
                         .withLabels(Map.of("app", "handbrake",
-                                           "inputPath", transformPath(conversionJob.getInputFile().getAbsolutePath()),
-                                           "outputPath", transformPath(conversionJob.getOutputFile().getAbsolutePath())))
+                                           "jobId", transformPath(conversionJob.getInputFile().getAbsolutePath())))
                     .endMetadata()
                     .withNewSpec()
                         .withBackoffLimit(1)
