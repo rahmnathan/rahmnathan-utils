@@ -129,10 +129,6 @@ public class HandbrakeServiceKubernetes {
     }
 
     private String transformPath(String path) {
-        if(path.startsWith(File.separator)){
-            path = path.substring(1);
-        }
-
-        return path.replaceAll(File.separator, "-");
+        return path.split(File.separator + "Movies" + File.separator)[1].replaceAll("[^A-Za-z0-9]", "-");
     }
 }
