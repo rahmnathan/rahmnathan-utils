@@ -71,8 +71,8 @@ public class HandbrakeServiceKubernetes {
                     .withNewMetadata()
                         .withName(podName)
                         .withLabels(Map.of("app", "handbrake",
-                                           "inputPath", conversionJob.getInputFile().getAbsolutePath().replaceAll(File.separator, "-"),
-                                           "outputPath", conversionJob.getOutputFile().getAbsolutePath().replaceAll(File.separator, "-")))
+                                           "inputPath", transformPath(conversionJob.getInputFile().getAbsolutePath()),
+                                           "outputPath", transformPath(conversionJob.getOutputFile().getAbsolutePath())))
                     .endMetadata()
                     .withNewSpec()
                         .withBackoffLimit(1)
@@ -126,5 +126,13 @@ public class HandbrakeServiceKubernetes {
 
             log.info("Job completed.");
         }
+    }
+
+    private String transformPath(String path) {
+        if(path.startsWith(File.separator)){
+            path = path.substring(1);
+        }
+
+        return path.replaceAll(File.separator, "-");
     }
 }
