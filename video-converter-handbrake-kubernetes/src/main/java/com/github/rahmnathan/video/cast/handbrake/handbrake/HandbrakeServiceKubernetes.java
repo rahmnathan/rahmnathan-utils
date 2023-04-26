@@ -75,6 +75,7 @@ public class HandbrakeServiceKubernetes {
                                            "outputPath", conversionJob.getOutputFile().getAbsolutePath().replaceAll(File.separator, "-")))
                     .endMetadata()
                     .withNewSpec()
+                        .withBackoffLimit(1)
                         .withNewTemplate()
                             .withNewSpec()
                                 .addNewContainer()
