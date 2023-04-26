@@ -117,8 +117,6 @@ public class HandbrakeServiceKubernetes {
                         }
                     }
                 }
-
-                conversionJob.getInputFile().delete();
             } catch (InterruptedException e) {
                 log.error("Interrupted.", e);
             }
