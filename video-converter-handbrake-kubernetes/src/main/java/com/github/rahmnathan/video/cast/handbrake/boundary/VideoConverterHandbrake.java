@@ -5,7 +5,6 @@ import com.github.rahmnathan.video.converter.boundary.VideoConverter;
 import com.github.rahmnathan.video.converter.data.SimpleConversionJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 
 import java.io.File;
 import java.io.IOException;

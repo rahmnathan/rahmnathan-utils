@@ -7,21 +7,19 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.jdkhttp.JdkHttpClientFactory;
-import io.micrometer.core.instrument.Metrics;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @AllArgsConstructor
 public class HandbrakeServiceKubernetes {
-    private static final AtomicInteger ACTIVE_CONVERSION_GAUGE = Metrics.gauge("handbrake.conversions.active", new AtomicInteger(0));
 
     public void convertMedia(SimpleConversionJob conversionJob) throws IOException {
         try (KubernetesClient client = new KubernetesClientBuilder().withHttpClientFactory(new JdkHttpClientFactory()).build()) {
@@ -73,8 +71,8 @@ public class HandbrakeServiceKubernetes {
                     .withNewMetadata()
                         .withName(podName)
                         .withLabels(Map.of("app", "handbrake",
-                                           "inputPath", conversionJob.getInputFile().getAbsolutePath(),
-                                           "outputPath", conversionJob.getOutputFile().getAbsolutePath()))
+                                           "inputPath", conversionJob.getInputFile().getAbsolutePath().replaceAll(File.separator, "-"),
+                                           "outputPath", conversionJob.getOutputFile().getAbsolutePath().replaceAll(File.separator, "-")))
                     .endMetadata()
                     .withNewSpec()
                         .withNewTemplate()
@@ -103,8 +101,6 @@ public class HandbrakeServiceKubernetes {
                             job1.getStatus().getReady() != null &&
                             job1.getStatus().getReady() > 0, 12, TimeUnit.HOURS);
 
-            ACTIVE_CONVERSION_GAUGE.getAndIncrement();
-
             try {
                 while(true) {
                     Thread.sleep(60000);
@@ -123,11 +119,10 @@ public class HandbrakeServiceKubernetes {
                 }
 
                 conversionJob.getInputFile().delete();
-            } catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 log.error("Interrupted.", e);
-            } finally {
-                ACTIVE_CONVERSION_GAUGE.getAndDecrement();
             }
+
             log.info("Job completed.");
         }
     }
