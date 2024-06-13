@@ -60,6 +60,7 @@ public class HandbrakeServiceKubernetes {
             String namespace = Files.readString(Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace"));
 
             ResourceRequirements resources = new ResourceRequirements(
+                    new ArrayList<>(),
                     Map.of("cpu", Quantity.parse("6"),
                            "memory", Quantity.parse("6Gi")),
                     Map.of("cpu", Quantity.parse("2"),
