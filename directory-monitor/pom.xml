@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.rahmnathan.utils</groupId>
         <artifactId>rahmnathan-utils</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
     <artifactId>directory-monitor</artifactId>
